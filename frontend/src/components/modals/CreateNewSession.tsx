@@ -6,9 +6,10 @@ import styles from './CreateNewSession.module.css';
 interface CreateNewSessionProps {
     open: boolean
     handleClose: () => void;
+    onNewSession: () => void;
 }
 
-const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose }) => {
+const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose, onNewSession }) => {
 
     const [sessionName, setSessionName] = useState('');
 
@@ -31,9 +32,11 @@ const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose }
         }
         try {
             // Create a new session with the session name and userId
-            await api.post('/users/session/start/', { session_name: sessionName, userId }); 
+            await api.post('/users/session/start/', { session_name: sessionName, user_id: userId }); 
             // Close the modal on successful creation
             handleClose(); 
+            // Call the onNewSession callback to refresh the sessions
+            onNewSession();
         } catch (error) {
             // TODO: Show an error message to the user
             console.error('Error creating session:', error);

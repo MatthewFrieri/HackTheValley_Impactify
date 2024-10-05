@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import StopCurrentSession from '../modals/StopCurrentSession';
 
-const NewSession: React.FC = () => {
+interface StopSessionProps {
+    onStopSession: () => void;
+}
+
+const StopSession: React.FC<StopSessionProps> = ({ onStopSession }) => {
 
     const [open, setOpen] = useState(false);
 
@@ -14,9 +18,9 @@ const NewSession: React.FC = () => {
             <Button variant="contained" color="error" onClick={handleOpen}>
                 Stop Session -
             </Button>
-            <StopCurrentSession open={open} handleClose={handleClose} />
+            <StopCurrentSession open={open} handleClose={handleClose} onStopSession={onStopSession} />
         </>
     );
 };
 
-export default NewSession;
+export default StopSession;

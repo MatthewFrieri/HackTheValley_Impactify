@@ -5,11 +5,9 @@ from .serializers import UserSerializer, SessionDataSerializer
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from .models import *
-import datetime
+from datetime import datetime
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-
-
 
 class LoginView(APIView):
     def post(self, request):
@@ -18,19 +16,13 @@ class LoginView(APIView):
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            # Log the user in, this will create a session
-            login(request, user)
-
-            # You can return session-related data if necessary
-            session_key = request.session.session_key
+            login(request, user)  # Log the user in
             return Response({
-                "message": "You are now logged in",
-                "session_key": session_key,
-                "user_id": user.id,
+                'message': 'Login successful',
+                'user_id': user.id,  # Include user_id in the response
             }, status=status.HTTP_200_OK)
         else:
-            return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class RegisterView(APIView):
     def post(self, request):
@@ -45,7 +37,6 @@ class RegisterView(APIView):
             # Return validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class SessionView(APIView):
     def get(self, request):
         try:
@@ -53,9 +44,14 @@ class SessionView(APIView):
             # Get the user ID from the query params
             user_id = request.query_params['user_id']
             # Get the most recent session for this user
-            session_id = UserSession.objects.filter(user_id=user_id).latest('id')
+            s = UserSession.objects.filter(user_id=user_id).latest('id')
             # Return the session ID
-            return Response({'session_id': session_id.session_id})
+            return Response({
+                'session_id': s.session_id.id, 
+                'session_name': s.session_id.session_name,
+                'time_start': s.session_id.time_start,
+                'time_end': s.session_id.time_end
+            })
         except KeyError:
             # If there is an invalid key
             return Response('Error', status=500)
@@ -63,6 +59,29 @@ class SessionView(APIView):
             # If there is no session found
             return Response({'session_id': None})
 
+class SessionAllView(APIView):
+    def get(self, request):
+        try:
+            print(request.data)
+            # Get the user ID from the query params
+            user_id = request.query_params['user_id']
+            # Get the user associated with the user ID
+            user = User.objects.get(id=user_id)
+            # Get a list of sessions for this user
+            session = Session.objects.filter(user_id=user)
+            # Return a list of session IDs
+            return Response([{
+                'session_id': s.id, 
+                'session_name': s.session_name,
+                'time_start': s.time_start,
+                'time_end': s.time_end
+            } for s in session])
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except User.DoesNotExist:
+            # If there is no user found
+            return Response('Error', status=500)
 
 class SessionDataView(APIView):
     def post(self, request):
@@ -104,11 +123,38 @@ class SessionDataView(APIView):
             # If there is an invalid key
             return Response('Error', status=500)
         except UserSession.DoesNotExist:
+            print("No active session found")
             # If there is no session started
             return Response('No active session found', status=500)
         # Return a success response
         return Response('Success')
 
+    def get(self, request):
+        try:
+            print(request.data)
+            # Get the user ID from the query params
+            user_id = request.query_params['user_id']
+            # Get the most recent session for this user
+            s = UserSession.objects.filter(user_id=user_id).latest('id')
+            # Get the session data for this session
+            session_data = SessionData.objects.filter(session_id=s.session_id)
+            # Return the session data
+            return Response([{
+                'timestamp': d.timestamp,
+                'pressure_l': d.pressure_l,
+                'pressure_r': d.pressure_r,
+                'pressure_b': d.pressure_b,
+                'pressure_t': d.pressure_t,
+                'accel_x': d.accel_x,
+                'accel_y': d.accel_y,
+                'accel_z': d.accel_z
+            } for d in session_data])
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except UserSession.DoesNotExist:
+            # If there is no session found
+            return Response('No active session found', status=500)
 
 class SessionStartView(APIView):
     def post(self, request):
@@ -117,10 +163,12 @@ class SessionStartView(APIView):
             # Get the user from the request
             user_id = request.data['user_id']
             session_name = request.data['session_name']
+            # Get the user associated with the user ID
+            user = User.objects.get(id=user_id)
             # Create a new session
-            session = Session.objects.create(user_id=user_id, session_name=session_name)
+            session = Session.objects.create(user_id=user, session_name=session_name)
             # Insert the session into the UserSession table
-            user_session = UserSession.objects.create(user_id=user_id, session_id=session.id)
+            user_session = UserSession.objects.create(user_id=user, session_id=session)
             # Save the session
             session.save()
             user_session.save()
@@ -137,9 +185,9 @@ class SessionStopView(APIView):
         # Get the user from the request
         user = User.objects.get(id=request.data['user_id'])
         # Get the most recent session from the UserSession table
-        session_id = UserSession.objects.filter(user_id=user.id).latest('id').session_id
+        s = UserSession.objects.filter(user_id=user.id).latest('id')
         # Get the session from the Session table
-        session = Session.objects.get(id=session_id)
+        session = Session.objects.get(id=s.session_id.id)
         # Update the session end time
         session.time_end = datetime.now()
         # Save the session

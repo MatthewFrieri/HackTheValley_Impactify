@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import Button from '@mui/material/Button';
 import CreateNewSession from '../modals/CreateNewSession';
 
-const NewSession: React.FC = () => {
+interface NewSessionProps {
+    onNewSession: () => void;
+}
+
+const NewSession: React.FC<NewSessionProps> = ({ onNewSession }) => {
 
     const [open, setOpen] = useState(false);
 
@@ -14,7 +18,7 @@ const NewSession: React.FC = () => {
             <Button variant="contained" color="primary" onClick={handleOpen}>
                 New Session +
             </Button>
-            <CreateNewSession open={open} handleClose={handleClose} />
+            <CreateNewSession open={open} handleClose={handleClose} onNewSession={onNewSession} />
         </>
     );
 };

@@ -33,10 +33,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '104.131.48.249',
     'localhost',
+    '127.0.0.1'
 ]
-# settings.py
-
-LOGIN_URL = '/users/login/'  # Set the correct login URL for your app
 
 
 # Application definition
@@ -63,16 +61,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ORIGIN_REGEXES = [r'^.*$']
 
+CORS_ALLOW_HEADERS = [
+    '*',
+]
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://104.131.48.249'
-]
-CORS_ALLOW_ORIGIN_REGEXES = [r'^.*$']  # Regex that matches all origins
-CORS_ALLOW_HEADERS = [
-    '*',  # Allow any header
 ]
 CORS_ALLOW_METHODS = [
     'GET',
@@ -82,8 +81,6 @@ CORS_ALLOW_METHODS = [
     'DELETE',
     'OPTIONS'
 ]
-# Allow specific headers
-
 
 ROOT_URLCONF = 'backend.urls'
 

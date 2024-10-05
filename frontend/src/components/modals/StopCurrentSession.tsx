@@ -6,15 +6,18 @@ import styles from './StopCurrentSession.module.css';
 interface StopCurrentSessionProps {
     open: boolean
     handleClose: () => void;
+    onStopSession: () => void;
 }
 
-const StopCurrentSession: React.FC<StopCurrentSessionProps> = ({ open, handleClose }) => {
+const StopCurrentSession: React.FC<StopCurrentSessionProps> = ({ open, handleClose, onStopSession }) => {
 
     const handleStopSession = async () => {
         try {
-            const response = await api.post('/users/session/end/', { user_id: localStorage.getItem('user_id') }); 
+            await api.post('/users/session/end/', { user_id: localStorage.getItem('user_id') }); 
             // Close the modal on successful creation
             handleClose();
+            // Call the onStopSession callback to refresh the sessions
+            onStopSession();
         } catch (error) {
             // TODO: Show an error message to the user
             console.error('Error stopping session:', error);

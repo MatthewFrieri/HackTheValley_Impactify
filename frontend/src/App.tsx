@@ -14,7 +14,7 @@ function App() {
                 <Route
                     path="/dashboard"
                     element={
-                        <LandingPage userId="1" username="Will" />
+                        <LandingPage />
                     }
                 />
                 <Route path="/login" element={<Login />} />

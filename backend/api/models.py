@@ -23,7 +23,7 @@ class SessionData(models.Model):
     accel_z = models.FloatField()
 
 class UserSession(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False)
+    id = models.AutoField(primary_key=True, editable=False)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_sessions')
     session_id = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='user_sessions')
     
