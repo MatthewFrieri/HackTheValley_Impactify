@@ -21,8 +21,8 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]
@@ -117,6 +117,26 @@ export default tseslint.config(
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/createfrontend.sh
+
+#!/bin/bash
+
+# Build the Docker image
+docker build -t react-frontend .
+
+# Exit if the build failed
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+# Run the Docker container with environment variables from .env
+docker run --rm \
+  --name react-container \
+  -p 5173:5173 \
+  -d react-frontend
 
 
 # ======================================================= #
