@@ -1,0 +1,11 @@
+/* Main container within the modal */
+.modalBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background-color: var(--background-paper, #fff);
+    box-shadow: 24px 24px 48px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+}

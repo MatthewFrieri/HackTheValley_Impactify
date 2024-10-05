@@ -64,11 +64,12 @@ class SessionDataView(APIView):
 class SessionStartView(APIView):
     def post(self, request):
         # Get the user from the request
-        user = User.objects.get(id=request.data['user_id'])
+        user_id = request.data['user_id']
+        session_name = request.data['session_name']
         # Create a new session
-        session = Session.objects.create(user=user)
+        session = Session.objects.create(user_id=user_id, session_name=session_name)
         # Insert the session into the UserSession table
-        user_session = UserSession.objects.create(user_id=user.id, session_id=session.id)
+        user_session = UserSession.objects.create(user_id=user_id, session_id=session.id)
         # Save the session
         session.save()
         user_session.save()

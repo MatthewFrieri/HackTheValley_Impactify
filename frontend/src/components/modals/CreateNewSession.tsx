@@ -1,14 +1,16 @@
 import api from '../../utils/api';
 import React, { useState } from 'react';
 import { Modal, Box, TextField, Button, Typography } from '@mui/material';
+import styles from './CreateNewSession.module.css';
 
-const CreateNewSession: React.FC = () => {
+interface CreateNewSessionProps {
+    open: boolean
+    handleClose: () => void;
+}
 
-    const [open, setOpen] = useState(false);
+const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose }) => {
+
     const [sessionName, setSessionName] = useState('');
-
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
 
     const handleSessionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSessionName(event.target.value);
@@ -16,7 +18,7 @@ const CreateNewSession: React.FC = () => {
 
     const handleCreateSession = async () => {
         try {
-            const response = await api.post('/users/sessions', { name: sessionName }); 
+            const response = await api.post('/users/sessions/start', { session_name: sessionName }); 
             // Close the modal on successful creation
             handleClose(); 
         } catch (error) {
@@ -27,18 +29,7 @@ const CreateNewSession: React.FC = () => {
 
     return (
         <Modal open={open} onClose={handleClose}>
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 400,
-                    bgcolor: 'background.paper',
-                    boxShadow: 24,
-                    p: 4,
-                }}
-            >
+            <Box className={styles.modalBox}>
                 <Typography variant="h6" component="h2" gutterBottom>
                     Create New Session
                 </Typography>
@@ -49,6 +40,8 @@ const CreateNewSession: React.FC = () => {
                     onChange={handleSessionNameChange}
                     margin="normal"
                 />
+                <br />
+                <br />
                 <Button variant="contained" color="primary" onClick={handleCreateSession}>
                     Create Session
                 </Button>
