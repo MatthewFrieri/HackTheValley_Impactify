@@ -32,7 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'c052-184-147-87-140.ngrok-free.app',
-    '104.131.48.249'
+    '104.131.48.249',
 ]
 
 
