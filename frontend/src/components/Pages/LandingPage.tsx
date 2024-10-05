@@ -1,6 +1,7 @@
 import React from "react";
 import api from "../../utils/api";
 import { Box, Typography, Stack, Button } from "@mui/material";
+import RefreshIcon from '@mui/icons-material/Refresh';
 import SessionLink from "../buttons/SessionLink";
 import NewSession from "../buttons/NewSession";
 import StopSession from "../buttons/StopSession";
@@ -16,9 +17,7 @@ interface Session {
 const LandingPage: React.FC = () => {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [sessions, setSessions] = React.useState<Session[]>([]);
-  const [recentSession, setRecentSession] = React.useState<Session | null>(
-    null
-  );
+  const [recentSession, setRecentSession] = React.useState<Session | null>(null);
 
   const getUserSessions = async () => {
     setLoading(true);
@@ -28,8 +27,10 @@ const LandingPage: React.FC = () => {
     // This will be used to display the previous sessions on the landing page
     const responseR = await api.get(`/users/session/`, { params: { user_id: userId } });
     const responseS = await api.get(`/users/session/all`, { params: { user_id: userId } });
+    // If there are sessions, reverse the list so most recent is first
+    responseS.data.reverse();
     // Set the state to the session IDs
-    setSessions(responseS.data);
+    setSessions(responseS.data || []);
     // Set the most recent session ID
     setRecentSession(responseR.data || null);
     // Stop loading
@@ -47,9 +48,6 @@ const LandingPage: React.FC = () => {
         <Typography variant="h4">
           Hello {localStorage.getItem("username")} 👋
         </Typography>
-        <Button variant="contained" color="primary" onClick={getUserSessions}>
-          Refresh
-        </Button>
         {(recentSession === null ||
           (recentSession && recentSession.time_end !== null)) && (
           <NewSession onNewSession={getUserSessions} />
@@ -59,9 +57,16 @@ const LandingPage: React.FC = () => {
         )}
       </Box>
 
-      <Typography variant="h6" gutterBottom textAlign={"left"}>
-        Your Previous Sessions:
-      </Typography>
+      <Box>
+        <Typography variant="h6" gutterBottom textAlign={"left"} padding={2}>
+          Your Previous Sessions:
+          <Button variant="text" onClick={getUserSessions} size="small">
+            <RefreshIcon />
+          </Button>
+        </Typography>
+
+  
+      </Box>
 
       <Stack direction="row" spacing={2}>
         {loading ? (
@@ -71,9 +76,7 @@ const LandingPage: React.FC = () => {
         ) : Array.isArray(sessions) && sessions.length > 0 ? (
           sessions.map((s, index) => (
             <SessionLink
-              sessionId={s.session_id}
-              text={s.session_name}
-              live={s.time_end === null}
+              session={s}
               key={index}
             />
           ))

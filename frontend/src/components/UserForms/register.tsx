@@ -4,56 +4,68 @@ import { Input, InputLabel, Button, Box, Typography } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import api from '../../utils/api'
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api';
 
-
-const Login: React.FC = () => {
+const Register: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    
     const handleTogglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleToggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null); // Reset error before submitting
+        setError(null);
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
         try {
-            const response = await api.post('/users/login/', {
-                username: username,
-                password: password
+            const response = await api.post('/users/register/', {
+                username,
+                email,
+                password
             });
-
-            if (response.status === 200) {
-                // Store user_id in localStorage
-                localStorage.setItem('user_id', response.data.user_id);
+            if (response.status === 201) {
+                // Reset the fields after successful registration
                 setUsername('');
+                setEmail('');
                 setPassword('');
+                setConfirmPassword('');
+                // Debug message
                 console.log('Login successful:', response.data);
+                // Redirect to dashboard
                 navigate('/dashboard');
-
-                // Handle post-login logic such as redirecting the user to a dashboard
             }
-
         } catch (error: any) {
-            console.error('Login error:', error.response?.data || error.message);
-            setError(error.response?.data?.message || 'An error occurred during login');
+            console.error('Registration error:', error.response?.data || error.message);
+            setError(error.response?.data?.message || 'An error occurred during registration');
         }
     };
 
     return (
         <Box
             component="form"
-            onSubmit={handleLogin}
+            onSubmit={handleRegister}
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                height: '100vh',
                 gap: 2,
                 padding: 3,
                 maxWidth: 400,
@@ -61,14 +73,24 @@ const Login: React.FC = () => {
             }}
         >
             <Typography variant="h4" gutterBottom>
-                Login
+                Register New Account
             </Typography>
+
             <FormControl fullWidth>
                 <InputLabel htmlFor="username">Username</InputLabel>
                 <Input
                     id="username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                />
+            </FormControl>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="email">Email</InputLabel>
+                <Input
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
             </FormControl>
 
@@ -92,6 +114,32 @@ const Login: React.FC = () => {
                 />
             </FormControl>
 
+            <FormControl fullWidth>
+                <InputLabel htmlFor="confirm-password">Confirm Password</InputLabel>
+                <Input
+                    id="confirm-password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                onClick={handleToggleConfirmPasswordVisibility}
+                                edge="end"
+                            >
+                                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </FormControl>
+
+            {error && (
+                <Typography variant="body2" color="error">
+                    {error}
+                </Typography>
+            )}
+
             <Button
                 type="submit"
                 variant="contained"
@@ -99,16 +147,23 @@ const Login: React.FC = () => {
                 fullWidth
                 sx={{ mt: 2 }}
             >
-                Login
+                Register
             </Button>
 
             {error && (
-                <Typography color="error" variant="body1">
+                <Typography variant="body2" color="error">
                     {error}
                 </Typography>
             )}
+
+            <Typography variant="body2" sx={{ mt: 2 }}>
+                Already have an account?{' '}
+                <Button color="primary" onClick={() => navigate('/login')}>
+                    Log In
+                </Button>
+            </Typography>
         </Box>
     );
-};
+}
 
-export default Login;
+export default Register;
