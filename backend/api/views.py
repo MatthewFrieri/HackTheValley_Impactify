@@ -53,7 +53,7 @@ class SessionDataView(APIView):
             # Get the most recent session ID from the UserSession table by primary key
             session_id = UserSession.objects.latest('id').session_id
             # Insert the data into the SessionData table
-            SessionData.objects.create(
+            session_data = SessionData.objects.create(
                 session_id=session_id,
                 timestamp=timestamp,
                 pressure_l=pressure_l,
@@ -65,7 +65,7 @@ class SessionDataView(APIView):
                 accel_z=accel_z
             )
             # Save the data
-            SessionData.save()
+            session_data.save()
         except KeyError:
             # If there is an invalid key
             return Response('Error', status=500)
@@ -78,18 +78,22 @@ class SessionDataView(APIView):
 
 class SessionStartView(APIView):
     def post(self, request):
-        # Get the user from the request
-        user_id = request.data['user_id']
-        session_name = request.data['session_name']
-        # Create a new session
-        session = Session.objects.create(user_id=user_id, session_name=session_name)
-        # Insert the session into the UserSession table
-        user_session = UserSession.objects.create(user_id=user_id, session_id=session.id)
-        # Save the session
-        session.save()
-        user_session.save()
-        # Return the session id
-        return Response({'session_id': session.id})
+        try:
+            # Get the user from the request
+            user_id = request.data['user_id']
+            session_name = request.data['session_name']
+            # Create a new session
+            session = Session.objects.create(user_id=user_id, session_name=session_name)
+            # Insert the session into the UserSession table
+            user_session = UserSession.objects.create(user_id=user_id, session_id=session.id)
+            # Save the session
+            session.save()
+            user_session.save()
+            # Return the session id
+            return Response({'session_id': session.id})
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
 
 
 class SessionStopView(APIView):
