@@ -26,20 +26,13 @@ const LandingPage: React.FC = () => {
     const userId = localStorage.getItem("user_id");
     // Using the users' ID, get all the sessions they have previously created
     // This will be used to display the previous sessions on the landing page
-    const response1 = await api.get(`/users/session/`, {
-      params: { user_id: userId },
-    });
-    const response2 = await api.get(`/users/session/all`, {
-      params: { user_id: userId },
-    });
-    // Set the most recent session ID
-    setRecentSession(response1.data || null);
+    const responseR = await api.get(`/users/session/`, { params: { user_id: userId } });
+    const responseS = await api.get(`/users/session/all`, { params: { user_id: userId } });
     // Set the state to the session IDs
-    setSessions(response2.data);
-    localStorage.setItem(
-      "session_id",
-      recentSession ? recentSession.session_id : "-1"
-    );
+    setSessions(responseS.data);
+    // Set the most recent session ID
+    setRecentSession(responseR.data || null);
+    // Stop loading
     setLoading(false);
   };
 
@@ -78,8 +71,9 @@ const LandingPage: React.FC = () => {
         ) : Array.isArray(sessions) && sessions.length > 0 ? (
           sessions.map((s, index) => (
             <SessionLink
-              link={s.session_id}
+              sessionId={s.session_id}
               text={s.session_name}
+              live={s.time_end === null}
               key={index}
             />
           ))

@@ -131,13 +131,12 @@ class SessionDataView(APIView):
         try:
             print(request.data)
             # Get the user ID from the query params
-            user_id = request.query_params['user_id']
-            # Get the most recent session for this user
-            s = UserSession.objects.filter(user_id=user_id).latest('id')
+            session_id = request.query_params['session_id']
             # Get the session data for this session
-            session_data = SessionData.objects.filter(session_id=s.session_id)
+            session_data = SessionData.objects.filter(session_id=session_id)
             # Return the session data
-            return Response([{
+            return Response([
+            {
                 'timestamp': d.timestamp,
                 'pressure_l': d.pressure_l,
                 'pressure_r': d.pressure_r,

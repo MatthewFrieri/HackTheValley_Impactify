@@ -3,15 +3,21 @@ import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 interface SessionLinkProps {
+    sessionId: string;
     text: string;
-    link: string;
+    live: boolean;
 }
 
-const SessionLink: React.FC<SessionLinkProps> = ({ text, link }) => {
-    // const navigate = useNavigate();
+const SessionLink: React.FC<SessionLinkProps> = ({ sessionId, text, live }) => {
+    const navigate = useNavigate();
     
     const handleClick = () => {
-        // navigate('/' + link);
+        const url = new URL(`/chart`, window.location.origin);
+        // Append the session ID to the URL
+        url.searchParams.append('session_id', sessionId);
+        url.searchParams.append('live', live.toString());
+        // Navigate to the new URL
+        navigate(url.pathname + url.search);
     };
 
     return (

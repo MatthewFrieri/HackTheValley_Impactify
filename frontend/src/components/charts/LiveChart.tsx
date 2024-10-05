@@ -3,6 +3,10 @@ import "chart.js/auto";
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 
+interface LiveChartProps {
+  sessionId: string;
+}
+
 interface DataPoint {
   timestamp: string;
   pressure_l: number;
@@ -15,13 +19,12 @@ interface DataPoint {
 }
 
 // Fetches session data based on the session ID stored in local storage
-async function FetchSessionData() {
-  const userId = localStorage.getItem("user_id");
+async function FetchSessionData(sessionId: string) {
 
   try {
     // Make the API call to fetch session stats
     const response = await api.get<DataPoint[]>("/users/session/data", {
-      params: { user_id: userId },
+      params: { session_id: sessionId },
     });
 
     // Return the data received from the API
@@ -55,7 +58,7 @@ const initialData = {
   ],
 };
 
-export default function LiveChart() {
+export default function LiveChart({ sessionId }: LiveChartProps) {
   const [data, setData] = useState(initialData);
   let alsoData = initialData;
 
@@ -121,7 +124,7 @@ export default function LiveChart() {
   };
 
   const handleAddEntries = async () => {
-    const allSessionValues = await FetchSessionData();
+    const allSessionValues = await FetchSessionData(sessionId);
 
     const nextValues = [...allSessionValues];
     const currentValues = alsoData.datasets[0].data;
