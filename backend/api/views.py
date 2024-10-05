@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -21,6 +20,22 @@ class LoginView(APIView):
             return Response({"message": "You are now logged in"}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+
+        # Validate the input data
+        if serializer.is_valid():
+            # Create the user if valid
+            serializer.save()
+            return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
+        else:
+            # Return validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class SessionDataView(APIView):
     def post(self, request):
         # Debug
