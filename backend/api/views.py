@@ -10,16 +10,16 @@ import datetime
 
 # Create your views here.
 
-# class LoginView(APIView):
-#     def post(self, request):
-#         username = request.data['username']
-#         password = request.data['password']
-#
-#         user = authenticate(request, username=username, password=password)
-#         if user is not None:
-#             return Response({"message": "You are now logged in"}, status=status.HTTP_200_OK)
-#         else:
-#             return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data['username']
+        password = request.data['password']
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            return Response({"message": "You are now logged in"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class RegisterView(APIView):
