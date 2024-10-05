@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
     // Digital Ocean Droplet IP
-    baseURL: "45.55.125.88",
+    baseURL: "http://104.131.48.249:8000",
 });
 
 export default api;

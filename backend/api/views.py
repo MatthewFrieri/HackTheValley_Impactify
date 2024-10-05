@@ -1,19 +1,26 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import generics
+from rest_framework import status
 from .serializers import UserSerializer, SessionDataSerializer
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from .models import *
 import datetime
 
+
 # Create your views here.
 
-class LoginView(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data['username']
+        password = request.data['password']
 
-
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            return Response({"message": "You are now logged in"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 class SessionDataView(APIView):
     def post(self, request):
         # Debug
@@ -53,6 +60,7 @@ class SessionDataView(APIView):
         # Return a success response
         return Response('Success')
 
+
 class SessionStartView(APIView):
     def post(self, request):
         # Get the user from the request
@@ -66,7 +74,8 @@ class SessionStartView(APIView):
         user_session.save()
         # Return the session id
         return Response({'session_id': session.id})
-    
+
+
 class SessionStopView(APIView):
     def post(self, request):
         # Get the user from the request

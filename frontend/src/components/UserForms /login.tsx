@@ -4,7 +4,7 @@ import { Input, InputLabel, Button, Box, Typography } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import axios from "axios";
+import api from '../../utils/api'
 
 const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +22,7 @@ const Login: React.FC = () => {
         setError(null); // Reset error before submitting
 
         try {
-            const response = await axios.post('https://c052-184-147-87-140.ngrok-free.app/users/login/', {
+            const response = await api.post('/users/login/  ', {
                 username: username,
                 password: password
             });
