@@ -61,11 +61,26 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
     'http://104.131.48.249'
 ]
+CORS_ALLOW_ORIGIN_REGEXES = [r'^.*$']  # Regex that matches all origins
+CORS_ALLOW_HEADERS = [
+    '*',  # Allow any header
+]
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS'
+]
+# Allow specific headers
+
 
 ROOT_URLCONF = 'backend.urls'
 
