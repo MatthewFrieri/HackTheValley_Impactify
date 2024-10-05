@@ -64,8 +64,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'https://c052-184-147-87-140.ngrok-free.app',
-    'http://localhost:5173/',
-    '104.131.48.249'
+    'http://localhost:5173',
+    'http://104.131.48.249'
 ]
 
 ROOT_URLCONF = 'backend.urls'
