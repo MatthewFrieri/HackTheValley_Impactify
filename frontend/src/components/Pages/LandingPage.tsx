@@ -44,7 +44,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ userId, username }) => {
             </Typography>
 
             <Stack direction="row" spacing={2}>
-                { sessions.map((link, _) => <SessionLink link={link} text={"Game"} />) }
+                { sessions.map((link, index) => <SessionLink link={link} text={"Game"} key={index} />) }
             </Stack> 
         </Box>
     );
