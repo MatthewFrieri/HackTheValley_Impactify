@@ -35,6 +35,22 @@ class RegisterView(APIView):
             # Return validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class SessionView(APIView):
+    def get(self, request):
+        try:
+            # Get the user ID from the query params
+            user_id = request.query_params['user_id']
+            # Get the most recent session for this user
+            session_id = UserSession.objects.filter(user_id=user_id).latest('id')
+            # Return the session ID
+            return Response({'session_id': session_id.session_id})
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except UserSession.DoesNotExist:
+            # If there is no session found
+            return Response({'session_id': None})
+        
 
 class SessionDataView(APIView):
     def post(self, request):
@@ -42,30 +58,38 @@ class SessionDataView(APIView):
         print(request.data)
         # Get the data from the request
         try:
-            timestamp = request.data['timestamp']
-            pressure_l = request.data['pressures']['left']
-            pressure_r = request.data['pressures']['right']
-            pressure_b = request.data['pressures']['back']
-            pressure_t = request.data['pressures']['top']
-            accel_x = request.data['acceleration']['x']
-            accel_y = request.data['acceleration']['y']
-            accel_z = request.data['acceleration']['z']
-            # Get the most recent session ID from the UserSession table by primary key
-            session_id = UserSession.objects.latest('id').session_id
-            # Insert the data into the SessionData table
-            session_data = SessionData.objects.create(
-                session_id=session_id,
-                timestamp=timestamp,
-                pressure_l=pressure_l,
-                pressure_r=pressure_r,
-                pressure_b=pressure_b,
-                pressure_t=pressure_t,
-                accel_x=accel_x,
-                accel_y=accel_y,
-                accel_z=accel_z
-            )
-            # Save the data
-            session_data.save()
+            # Check that request.data is a list of dictionaries
+            if not isinstance(request.data, list):
+                # Debug
+                print("Sent data is not a list")
+                # Return an error response
+                return Response('Error', status=500)
+            # Iterate over the list of dictionaries
+            for item in request.data:
+                timestamp = item['timestamp']
+                pressure_l = item['pressures']['left']
+                pressure_r = item['pressures']['right']
+                pressure_b = item['pressures']['back']
+                pressure_t = item['pressures']['top']
+                accel_x = item['acceleration']['x']
+                accel_y = item['acceleration']['y']
+                accel_z = item['acceleration']['z']
+                # Get the most recent session ID from the UserSession table by primary key
+                session_id = UserSession.objects.latest('id').session_id
+                # Insert the data into the SessionData table
+                session_data = SessionData.objects.create(
+                    session_id=session_id,
+                    timestamp=timestamp,
+                    pressure_l=pressure_l,
+                    pressure_r=pressure_r,
+                    pressure_b=pressure_b,
+                    pressure_t=pressure_t,
+                    accel_x=accel_x,
+                    accel_y=accel_y,
+                    accel_z=accel_z
+                )
+                # Save the data
+                session_data.save()
         except KeyError:
             # If there is an invalid key
             return Response('Error', status=500)

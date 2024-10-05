@@ -1,0 +1,608 @@
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/manage.py
+
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/views.py
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from .serializers import UserSerializer, SessionDataSerializer
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from .models import *
+import datetime
+
+
+# Create your views here.
+
+class LoginView(APIView):
+    def post(self, request):
+        username = request.data['username']
+        password = request.data['password']
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            return Response({"message": "You are now logged in"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+
+        # Validate the input data
+        if serializer.is_valid():
+            # Create the user if valid
+            serializer.save()
+            return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
+        else:
+            # Return validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SessionDataView(APIView):
+    def post(self, request):
+        # Debug
+        print(request.data)
+        # Get the data from the request
+        try:
+            timestamp = request.data['timestamp']
+            pressure_l = request.data['pressures']['left']
+            pressure_r = request.data['pressures']['right']
+            pressure_b = request.data['pressures']['back']
+            pressure_t = request.data['pressures']['top']
+            accel_x = request.data['acceleration']['x']
+            accel_y = request.data['acceleration']['y']
+            accel_z = request.data['acceleration']['z']
+            # Get the most recent session ID from the UserSession table by primary key
+            session_id = UserSession.objects.latest('id').session_id
+            # Insert the data into the SessionData table
+            session_data = SessionData.objects.create(
+                session_id=session_id,
+                timestamp=timestamp,
+                pressure_l=pressure_l,
+                pressure_r=pressure_r,
+                pressure_b=pressure_b,
+                pressure_t=pressure_t,
+                accel_x=accel_x,
+                accel_y=accel_y,
+                accel_z=accel_z
+            )
+            # Save the data
+            session_data.save()
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except UserSession.DoesNotExist:
+            # If there is no session started
+            return Response('No active session found', status=500)
+        # Return a success response
+        return Response('Success')
+
+
+class SessionStartView(APIView):
+    def post(self, request):
+        try:
+            # Get the user from the request
+            user_id = request.data['user_id']
+            session_name = request.data['session_name']
+            # Create a new session
+            session = Session.objects.create(user_id=user_id, session_name=session_name)
+            # Insert the session into the UserSession table
+            user_session = UserSession.objects.create(user_id=user_id, session_id=session.id)
+            # Save the session
+            session.save()
+            user_session.save()
+            # Return the session id
+            return Response({'session_id': session.id})
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+
+
+class SessionStopView(APIView):
+    def post(self, request):
+        # Get the user from the request
+        user = User.objects.get(id=request.data['user_id'])
+        # Get the most recent session from the UserSession table
+        session_id = UserSession.objects.filter(user_id=user.id).latest('id').session_id
+        # Get the session from the Session table
+        session = Session.objects.get(id=session_id)
+        # Update the session end time
+        session.time_end = datetime.now()
+        # Save the session
+        session.save()
+        # Return a success response
+        return Response('Success')
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/urls.py
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('register/', views.RegisterView.as_view(), name='register'),
+    path('session/data/', views.SessionDataView.as_view(), name='session_data'),
+    path('session/start/', views.SessionStartView.as_view(), name='session_start'),
+    path('session/end/', views.SessionStopView.as_view(), name='session_end'),
+]
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/admin.py
+
+from django.contrib import admin
+
+# Register your models here.
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/serializers.py
+
+#models
+from .models import SessionData
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'password', 'date_joined', 'last_login']
+        extra_kwargs = {
+            'password': {'write_only': True},  # Make password write-only
+            'date_joined': {'read_only': True},  # Make date_joined read-only
+            'last_login': {'read_only': True}  # Make last_login read-only
+        }
+
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super(UserSerializer, self).create(validated_data)
+
+
+class SessionDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionData
+        fields = '__all__'
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/tests.py
+
+from django.test import TestCase
+
+# Create your tests here.
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/apps.py
+
+from django.apps import AppConfig
+
+
+class ApiConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'api'
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/models.py
+
+import uuid
+from django.db import models
+from django.contrib.auth.models import User
+
+# Create your models here.
+class Session(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    session_name = models.CharField(max_length=100, default='My Session')
+    time_start = models.DateTimeField(auto_now_add=True)
+    time_end = models.DateTimeField(null=True)
+    
+class SessionData(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session_id = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session_data')
+    timestamp = models.DateTimeField()
+    pressure_l = models.FloatField()
+    pressure_r = models.FloatField()
+    pressure_b = models.FloatField()
+    pressure_t = models.FloatField()
+    accel_x = models.FloatField()
+    accel_y = models.FloatField()
+    accel_z = models.FloatField()
+
+class UserSession(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_sessions')
+    session_id = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='user_sessions')
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/migrations/0002_session_sessiondata_delete_test.py
+
+# Generated by Django 5.1.1 on 2024-10-05 04:37
+
+import django.db.models.deletion
+import uuid
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('api', '0001_initial'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Session',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('time_start', models.DateTimeField(auto_now_add=True)),
+                ('time_end', models.DateTimeField(null=True)),
+                ('user_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sessions', to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='SessionData',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('timestamp', models.DateTimeField()),
+                ('pressure_1', models.FloatField()),
+                ('pressure_2', models.FloatField()),
+                ('pressure_3', models.FloatField()),
+                ('pressure_4', models.FloatField()),
+                ('accel_x', models.FloatField()),
+                ('accel_y', models.FloatField()),
+                ('accel_z', models.FloatField()),
+                ('session_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='session_data', to='api.session')),
+            ],
+        ),
+        migrations.DeleteModel(
+            name='Test',
+        ),
+    ]
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/migrations/0001_initial.py
+
+# Generated by Django 5.1.1 on 2024-10-05 03:24
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Test',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=255)),
+                ('description', models.TextField()),
+            ],
+        ),
+    ]
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/api/migrations/0003_rename_pressure_1_sessiondata_pressure_b_and_more.py
+
+# Generated by Django 5.1.1 on 2024-10-05 05:30
+
+import django.db.models.deletion
+from django.conf import settings
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('api', '0002_session_sessiondata_delete_test'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.RenameField(
+            model_name='sessiondata',
+            old_name='pressure_1',
+            new_name='pressure_b',
+        ),
+        migrations.RenameField(
+            model_name='sessiondata',
+            old_name='pressure_2',
+            new_name='pressure_l',
+        ),
+        migrations.RenameField(
+            model_name='sessiondata',
+            old_name='pressure_3',
+            new_name='pressure_r',
+        ),
+        migrations.RenameField(
+            model_name='sessiondata',
+            old_name='pressure_4',
+            new_name='pressure_t',
+        ),
+        migrations.CreateModel(
+            name='UserSession',
+            fields=[
+                ('id', models.UUIDField(editable=False, primary_key=True, serialize=False)),
+                ('session_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_sessions', to='api.session')),
+                ('user_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_sessions', to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+    ]
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/backend/urls.py
+
+"""
+URL configuration for backend project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.1/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('users/', include('api.urls')),
+]
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/backend/wsgi.py
+
+"""
+WSGI config for backend project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+application = get_wsgi_application()
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/backend/asgi.py
+
+"""
+ASGI config for backend project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+application = get_asgi_application()
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/backend/backend/settings.py
+
+"""
+Django settings for backend project.
+
+Generated by 'django-admin startproject' using Django 5.1.1.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.1/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/5.1/ref/settings/
+"""
+
+from pathlib import Path
+import dotenv
+import os
+
+# Load environment variables from .env
+dotenv.load_dotenv()
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-l#$5sm2p*wdpi2wh09d5fdhx&z7lqn0e##*mcs*rbt-a2^qhwr'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = [
+    'c052-184-147-87-140.ngrok-free.app',
+    '104.131.48.249',
+]
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'api',
+]
+
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://c052-184-147-87-140.ngrok-free.app',
+    'http://localhost:5173',
+    'http://104.131.48.249'
+]
+
+ROOT_URLCONF = 'backend.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'backend.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+database = os.getenv('POSTGRES_DB')
+user = os.getenv('POSTGRES_USER')
+password = os.getenv('POSTGRES_PASSWORD')
+
+# Check if any of the environment variables are missing
+if not database or not user or not password:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': database,
+            'USER': user,
+            'PASSWORD': password,
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
+
+
+# Password validation
+# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
