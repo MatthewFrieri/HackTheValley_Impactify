@@ -3,7 +3,7 @@ import './App.css'
 import LandingPage from './components/Pages/LandingPage.tsx';
 import Login from "./components/UserForms /login.tsx";
 import Register from "./components/UserForms /register.tsx";
-import ProtectedRoute from "./components/UserForms /protected.tsx";
+// import ProtectedRoute from "./components/UserForms /protected.tsx";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -14,9 +14,7 @@ function App() {
                 <Route
                     path="/dashboard"
                     element={
-                        <ProtectedRoute>
-                            <LandingPage userId="1" username="Will" />
-                        </ProtectedRoute>
+                        <LandingPage userId="1" username="Will" />
                     }
                 />
                 <Route path="/login" element={<Login />} />
