@@ -2,6 +2,7 @@ import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
+import { LIVE_CHART_CAPACITY } from "../../utils/constants";
 
 interface LiveChartProps {
   sessionId: string;
@@ -20,7 +21,6 @@ interface DataPoint {
 
 // Fetches session data based on the session ID stored in local storage
 async function FetchSessionData(sessionId: string) {
-
   try {
     // Make the API call to fetch session stats
     const response = await api.get<DataPoint[]>("/users/session/data", {
@@ -91,18 +91,19 @@ export default function LiveChart({ sessionId }: LiveChartProps) {
   };
 
   const addNewEntries = (newValues: number[]) => {
-    const NUM_POINTS = 100;
     const currentLength = alsoData.datasets[0].data.length;
     const proposedLength = currentLength + newValues.length;
 
     const newLabels = Array(
-      proposedLength > NUM_POINTS ? NUM_POINTS : currentLength
+      proposedLength > LIVE_CHART_CAPACITY ? LIVE_CHART_CAPACITY : currentLength
     ).fill("");
 
     let newPoints: number[] = [];
-    if (proposedLength > NUM_POINTS) {
+    if (proposedLength > LIVE_CHART_CAPACITY) {
       newPoints = [
-        ...alsoData.datasets[0].data.slice(proposedLength - NUM_POINTS),
+        ...alsoData.datasets[0].data.slice(
+          proposedLength - LIVE_CHART_CAPACITY
+        ),
         ...newValues,
       ];
     } else {
