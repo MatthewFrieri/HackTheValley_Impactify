@@ -13,7 +13,7 @@ class Session(models.Model):
 class SessionData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session_id = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='session_data')
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(auto_now_add=True)
     pressure_l = models.FloatField()
     pressure_r = models.FloatField()
     pressure_b = models.FloatField()

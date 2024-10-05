@@ -95,7 +95,6 @@ class SessionDataView(APIView):
                 return Response('Error', status=500)
             # Iterate over the list of dictionaries
             for item in request.data:
-                timestamp = item['timestamp']
                 pressure_l = item['pressures']['left']
                 pressure_r = item['pressures']['right']
                 pressure_b = item['pressures']['back']
@@ -108,7 +107,6 @@ class SessionDataView(APIView):
                 # Insert the data into the SessionData table
                 session_data = SessionData.objects.create(
                     session_id=session_id,
-                    timestamp=timestamp,
                     pressure_l=pressure_l,
                     pressure_r=pressure_r,
                     pressure_b=pressure_b,
