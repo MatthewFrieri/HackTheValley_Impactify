@@ -19,7 +19,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ userId, username }) => {
         setLoading(true);
         // Using the users' ID, get all the sessions they have previously created
         // This will be used to display the previous sessions on the landing page
-        const response = await api.get(`/users/sessions/${userId}`);
+        const response = await api.get(`/users/sessions`, { params: { user_id: userId } });
         // HACK: Since we don't have any data yet
         response.data = ["1", "2", "3", "4", "5"];
         // Set the state to the session IDs
