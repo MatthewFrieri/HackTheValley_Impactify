@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+
+# Compiled Python files
+*.pyc
+
+# Django local settings
+local_settings.py
+
+# Database files
+db.sqlite3
+
+# Static files (if you're using a separate server for static files)
+static/
+
+# Media files (if you're using a separate server for media files)
+media/
+
+# Python environment files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migration files (sometimes you may want to keep these)
+# migrations/
+
+# IDE/editor files
+.idea/
+.vscode/
