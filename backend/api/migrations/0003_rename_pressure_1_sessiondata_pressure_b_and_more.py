@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserSession',
             fields=[
-                ('id', models.UUIDField(editable=False, primary_key=True, serialize=False)),
+                ('id', models.AutoField(editable=False, primary_key=True, serialize=False)),
                 ('session_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_sessions', to='api.session')),
                 ('user_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_sessions', to=settings.AUTH_USER_MODEL)),
             ],
