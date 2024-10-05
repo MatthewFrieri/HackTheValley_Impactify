@@ -33,7 +33,7 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await api.post('/users/register', {
+            const response = await api.post('/users/register/', {
                 username,
                 email,
                 password
