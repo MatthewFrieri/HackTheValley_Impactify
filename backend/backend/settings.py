@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-l#$5sm2p*wdpi2wh09d5fdhx&z7lqn0e##*mcs*rbt-a2^qhwr
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '85e4-184-147-87-140.ngrok-free.app'
+    'c052-184-147-87-140.ngrok-free.app'
 ]
 
 
@@ -56,6 +56,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://c052-184-147-87-140.ngrok-free.app'
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -85,7 +89,6 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 database = os.getenv('POSTGRES_DB')
 user = os.getenv('POSTGRES_USER')
 password = os.getenv('POSTGRES_PASSWORD')
-print(database, user, password)
 
 # Check if any of the environment variables are missing
 if not database or not user or not password:

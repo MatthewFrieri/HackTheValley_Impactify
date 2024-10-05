@@ -1,7 +1,13 @@
-from .models import Test
 from rest_framework import serializers
-
-class TestSerializer(serializers.ModelSerializer):
+from django.contrib.auth.models import User
+#models 
+from .models import SessionData
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Test
+        model = User
+        fields = ['id', 'username', 'email', 'password','date_joined', 'last_login']
+
+class SessionDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionData
         fields = '__all__'
