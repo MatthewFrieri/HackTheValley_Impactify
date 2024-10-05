@@ -34,6 +34,9 @@ ALLOWED_HOSTS = [
     '104.131.48.249',
     'localhost',
 ]
+# settings.py
+
+LOGIN_URL = '/users/login/'  # Set the correct login URL for your app
 
 
 # Application definition
