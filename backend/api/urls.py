@@ -9,6 +9,5 @@ urlpatterns = [
     path('session/data/', views.SessionDataView.as_view(), name='session_data'),
     path('session/start/', views.SessionStartView.as_view(), name='session_start'),
     path('session/end/', views.SessionStopView.as_view(), name='session_end'),
-    path('check-auth/', views.check_auth, name='check_auth'),
 
 ]
