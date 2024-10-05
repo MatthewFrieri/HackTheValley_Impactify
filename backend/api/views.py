@@ -45,9 +45,11 @@ class SessionDataView(APIView):
             # Save the data
             SessionData.save()
         except KeyError:
-            # Return an error response
-            return Response('Error', status=400)
-
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except UserSession.DoesNotExist:
+            # If there is no session started
+            return Response('No active session found', status=500)
         # Return a success response
         return Response('Success')
 

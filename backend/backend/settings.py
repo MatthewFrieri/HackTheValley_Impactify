@@ -60,12 +60,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173/',  # For React development
-]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://c052-184-147-87-140.ngrok-free.app'
+    'https://c052-184-147-87-140.ngrok-free.app',
+    'http://localhost:5173/'
 ]
 
 ROOT_URLCONF = 'backend.urls'
