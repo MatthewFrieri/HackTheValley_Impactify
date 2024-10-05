@@ -17,8 +17,21 @@ const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose }
     };
 
     const handleCreateSession = async () => {
+        // Get the userId from localStorage
+        const userId = localStorage.getItem('user_id');
+        // Make sure the userId is not null
+        if (!userId) {
+            console.error('User ID is null');
+            return;
+        }
+        // Make sure the session name is not empty
+        if (!sessionName) {
+            console.error('Session name is empty');
+            return;
+        }
         try {
-            const response = await api.post('/users/sessions/start', { session_name: sessionName }); 
+            // Create a new session with the session name and userId
+            await api.post('/users/session/start/', { session_name: sessionName, userId }); 
             // Close the modal on successful creation
             handleClose(); 
         } catch (error) {

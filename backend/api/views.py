@@ -47,6 +47,7 @@ class RegisterView(APIView):
 class SessionView(APIView):
     def get(self, request):
         try:
+            print(request.data)
             # Get the user ID from the query params
             user_id = request.query_params['user_id']
             # Get the most recent session for this user
@@ -63,10 +64,8 @@ class SessionView(APIView):
 
 class SessionDataView(APIView):
     def post(self, request):
-        # Debug
-        print(request.data)
-        # Get the data from the request
         try:
+            print(request.data)
             # Check that request.data is a list of dictionaries
             if not isinstance(request.data, list):
                 # Debug
@@ -112,6 +111,7 @@ class SessionDataView(APIView):
 class SessionStartView(APIView):
     def post(self, request):
         try:
+            print(request.data)
             # Get the user from the request
             user_id = request.data['user_id']
             session_name = request.data['session_name']
@@ -131,6 +131,7 @@ class SessionStartView(APIView):
 
 class SessionStopView(APIView):
     def post(self, request):
+        print(request.data)
         # Get the user from the request
         user = User.objects.get(id=request.data['user_id'])
         # Get the most recent session from the UserSession table

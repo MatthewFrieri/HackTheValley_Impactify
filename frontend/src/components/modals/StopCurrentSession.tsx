@@ -12,7 +12,7 @@ const StopCurrentSession: React.FC<StopCurrentSessionProps> = ({ open, handleClo
 
     const handleStopSession = async () => {
         try {
-            const response = await api.post('/users/sessions/end', { user_id: localStorage.getItem('user_id') }); 
+            const response = await api.post('/users/session/end/', { user_id: localStorage.getItem('user_id') }); 
             // Close the modal on successful creation
             handleClose();
         } catch (error) {

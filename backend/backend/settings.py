@@ -31,8 +31,8 @@ SECRET_KEY = 'django-insecure-l#$5sm2p*wdpi2wh09d5fdhx&z7lqn0e##*mcs*rbt-a2^qhwr
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'c052-184-147-87-140.ngrok-free.app',
     '104.131.48.249',
+    'localhost',
 ]
 
 
@@ -63,7 +63,6 @@ MIDDLEWARE = [
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://c052-184-147-87-140.ngrok-free.app',
     'http://localhost:5173',
     'http://104.131.48.249'
 ]
