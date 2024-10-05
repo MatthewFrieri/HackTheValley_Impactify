@@ -6,9 +6,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from .models import *
 import datetime
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 
 
-# Create your views here.
+@login_required
+def check_auth(request):
+    return JsonResponse({'authenticated': True}, status=200)
+
 
 class LoginView(APIView):
     def post(self, request):
@@ -44,6 +49,7 @@ class RegisterView(APIView):
             # Return validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class SessionView(APIView):
     def get(self, request):
         try:
@@ -60,7 +66,7 @@ class SessionView(APIView):
         except UserSession.DoesNotExist:
             # If there is no session found
             return Response({'session_id': None})
-        
+
 
 class SessionDataView(APIView):
     def post(self, request):

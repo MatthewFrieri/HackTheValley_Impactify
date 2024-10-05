@@ -4,15 +4,16 @@ import { Input, InputLabel, Button, Box, Typography } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import api from '../../utils/api'
+import { useNavigate } from 'react-router-dom';
+import api from '../../utils/api';
+
 
 const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-
-
+    const navigate = useNavigate();
     const handleTogglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
@@ -20,7 +21,6 @@ const Login: React.FC = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null); // Reset error before submitting
-
         try {
             const response = await api.post('/users/login/', {
                 username: username,
@@ -28,10 +28,12 @@ const Login: React.FC = () => {
             });
 
             if (response.status === 200) {
+                // Store user_id in localStorage
                 localStorage.setItem('user_id', response.data.user_id);
                 setUsername('');
                 setPassword('');
                 console.log('Login successful:', response.data);
+                navigate('/dashboard');
 
                 // Handle post-login logic such as redirecting the user to a dashboard
             }
@@ -41,8 +43,6 @@ const Login: React.FC = () => {
             setError(error.response?.data?.message || 'An error occurred during login');
         }
     };
-
-
 
     return (
         <Box
@@ -101,8 +101,14 @@ const Login: React.FC = () => {
             >
                 Login
             </Button>
+
+            {error && (
+                <Typography color="error" variant="body1">
+                    {error}
+                </Typography>
+            )}
         </Box>
     );
-}
+};
 
 export default Login;
