@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build the Docker image
-docker build -t postgres-db .
+docker build -t react-frontend .
 
 # Exit if the build failed
 if [ $? -ne 0 ]; then
@@ -9,7 +9,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run the Docker container with environment variables from .env
-docker run --rm --env-file .env \
-  --name postgres-container \
-  -p 5432:5432 \
-  -d postgres-db
+docker run --rm \
+  --name react-container \
+  -p 5173:5173 \
+  -d react-frontend

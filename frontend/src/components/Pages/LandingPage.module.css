@@ -1,0 +1,17 @@
+/* Main container of the landing page */
+.mainBox {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    backdrop-filter: blur(5px);
+    padding: 2rem;
+}
+
+/* Header containing the welcome message and the new session button */
+.headerBox {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}

@@ -7,7 +7,7 @@ function App() {
 
   return <>
     <Login/>
-    <LandingPage userId='1'/>
+    <LandingPage userId='1' username='Will' />
   </>
 }
 
