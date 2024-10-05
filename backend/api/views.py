@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import UserSerializer, SessionDataSerializer
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login
 from .models import *
 import datetime
 
@@ -12,12 +12,21 @@ import datetime
 
 class LoginView(APIView):
     def post(self, request):
-        username = request.data['username']
-        password = request.data['password']
+        username = request.data.get('username')
+        password = request.data.get('password')
 
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            return Response({"message": "You are now logged in"}, status=status.HTTP_200_OK)
+            # Log the user in, this will create a session
+            login(request, user)
+
+            # You can return session-related data if necessary
+            session_key = request.session.session_key
+            return Response({
+                "message": "You are now logged in",
+                "session_key": session_key,
+                "user_id": user.id,
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 

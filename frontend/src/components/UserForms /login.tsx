@@ -22,25 +22,26 @@ const Login: React.FC = () => {
         setError(null); // Reset error before submitting
 
         try {
-            const response = await api.post('/users/login/  ', {
+            const response = await api.post('/users/login/', {
                 username: username,
                 password: password
             });
 
             if (response.status === 200) {
-                // Reset the username and password fields after successful login
+                localStorage.setItem('user_id', response.data.user_id);
                 setUsername('');
                 setPassword('');
+                console.log('Login successful:', response.data);
+
+                // Handle post-login logic such as redirecting the user to a dashboard
             }
 
-            console.log('Login successful:', response.data);
-
-            // You can handle further actions like redirecting the user upon success
         } catch (error: any) {
             console.error('Login error:', error.response?.data || error.message);
             setError(error.response?.data?.message || 'An error occurred during login');
         }
     };
+
 
 
     return (
