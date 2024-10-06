@@ -305,36 +305,24 @@ class SendSmsView(APIView):
             user_id = request.query_params['user_id']
             # Get the user associated with the user ID
             user = User.objects.get(id=user_id)
-
-            # --------- Send the SMS ---------
-
             # Your Twilio account SID and Auth Token (found in the Twilio dashboard)
             account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
             auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
-
             # Initialize the Twilio client
             client = Client(account_sid, auth_token)
-
-            def send_sms(to_number: str, from_number: str, message_body: str):
-                message = client.messages.create(
-                    body=message_body,
-                    from_=from_number,
-                    to=to_number
-                )
-            
-            try:
-                coach = CoachUser.objects.get(user_id=user_id)
-
-                # Replace the values below with your Twilio number and the recipient's number
-                to_number = '+14169482842'   # The phone number you're sending the SMS to
-                from_number = '+17097973306' # Your Twilio phone number
-                message_body = f"Hello {coach.coach_id.username}! Your player {user.username} is in critical condition. He needs to seek medical attention immediately."
-
-                # Call the function to send the SMS
-                send_sms(to_number, from_number, message_body)
-            except CoachUser.DoesNotExist:
-                print("No coach found for this player")
-
+            # Get the coach associated with the user ID
+            coach = CoachUser.objects.get(user_id=user_id)
+            # Replace the values below with your Twilio number and the recipient's number
+            to_number = '+14169482842'   # The phone number you're sending the SMS to
+            from_number = '+17097973306' # Your Twilio phone number
+            message_body = f"Hello {coach.coach_id.username}! Your player {user.username} is in critical condition. He needs to seek medical attention immediately."
+            # Call the function to send the SMS
+            client.messages.create(body=message_body, from_=from_number, to=to_number)
+            # Send a success response
+            return formattedResponse('Success', 'SMS sent successfully')
         except KeyError:
             # If there is an invalid key
             return formattedResponse('Error', 'Invalid request', code=status.HTTP_400_BAD_REQUEST)
+        except CoachUser.DoesNotExist:
+            # If there is no coach found
+            return formattedResponse('Error', 'Coach not found', code=status.HTTP_404_NOT_FOUND)
