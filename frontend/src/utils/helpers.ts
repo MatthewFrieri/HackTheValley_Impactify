@@ -31,10 +31,12 @@ export function getNumHits(values: number[]) {
 
 export function getValues(sessionData: DataPoint[]) {
     return sessionData.map(
-        (dataPoint) =>
-          dataPoint.pressure_l +
-          dataPoint.pressure_r +
-          dataPoint.pressure_t +
-          dataPoint.pressure_b
+        (dataPoint) =>{
+            const maxPressure = Math.max(dataPoint.pressure_l, dataPoint.pressure_r, dataPoint.pressure_t, dataPoint.pressure_b)
+            const maxAcceleration = Math.max(0.5, dataPoint.accel_x, dataPoint.accel_y)
+            
+            return maxPressure * maxAcceleration
+        }
+          
       )
 }
