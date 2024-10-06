@@ -35,7 +35,7 @@ export function getValues(sessionData: DataPoint[]) {
             const maxPressure = Math.max(dataPoint.pressure_l, dataPoint.pressure_r, dataPoint.pressure_t, dataPoint.pressure_b)
             const maxAcceleration = Math.max(0.5, dataPoint.accel_x, dataPoint.accel_y)
             
-            return maxPressure * maxAcceleration
+            return maxPressure * maxAcceleration / 10.0
         }
           
       )
