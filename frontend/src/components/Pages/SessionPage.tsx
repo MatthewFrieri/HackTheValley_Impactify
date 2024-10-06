@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import LiveChart from "../charts/LiveChart";
-import Stats from "../Stats/Stats";
+import Stats from "../Dashboard/Stats";
 import { Box, Button, Typography } from "@mui/material";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import api from "../../utils/api";
+import LiveChart from "../Dashboard/LiveChart";
+import BrainHealth from "../Dashboard/BrainHealth";
 
 const SessionPage: React.FC = () => {
   const location = useLocation();
@@ -32,30 +33,30 @@ const SessionPage: React.FC = () => {
   }, [location.search]);
 
   return (
-      <Box sx={{ padding: 2 }}>
-        <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
+    <Box sx={{ padding: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        {/* Back Button on the right */}
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)} // Navigate back to the previous page
+          variant="outlined"
+          sx={{ ml: "auto" }} // Ensure the button stays on the far right
         >
-
-          {/* Back Button on the right */}
-          <Button
-              startIcon={<ArrowBackIcon />}
-              onClick={() => navigate(-1)} // Navigate back to the previous page
-              variant="outlined"
-              sx={{ ml: 'auto' }} // Ensure the button stays on the far right
-          >
-            Back
-          </Button>
-        </Box>
-
-        <LiveChart sessionId={getQueryParams().get("session_id") || ""} />
-        <Stats sessionId={getQueryParams().get("session_id") || ""} />
+          Back
+        </Button>
       </Box>
+
+      <LiveChart sessionId={getQueryParams().get("session_id") || ""} />
+      <Stats sessionId={getQueryParams().get("session_id") || ""} />
+      <BrainHealth sessionId={getQueryParams().get("session_id") || ""} />
+    </Box>
   );
 };
 
