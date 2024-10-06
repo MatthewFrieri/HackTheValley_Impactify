@@ -4,10 +4,7 @@ import zoomPlugin from "chartjs-plugin-zoom";
 import { Chart as ChartJS } from "chart.js";
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
-import {
-  DASHBOARD_REFRESH_TIME,
-  LIVE_CHART_CAPACITY,
-} from "../../utils/constants";
+import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
 import { getValues } from "../../utils/helpers";
 
 ChartJS.register(zoomPlugin);

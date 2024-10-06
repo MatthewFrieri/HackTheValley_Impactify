@@ -50,8 +50,9 @@ const getInsights = (health: number) => {
   } else {
     return {
       title: "🚨 Emergency Situation",
-      message:
+      messages: [
         "Severe trauma detected. Immediate medical attention is necessary. Stop playing and seek emergency assistance right away!",
+      ],
     };
   }
 };

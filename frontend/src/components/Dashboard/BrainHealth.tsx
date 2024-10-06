@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
-import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
+import {
+  DASHBOARD_REFRESH_TIME,
+  NUM_HITS_FOR_DEATH,
+} from "../../utils/constants";
 import { Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
 import { getNumHits, getValues } from "../../utils/helpers";
@@ -30,8 +33,6 @@ async function FetchSessionData(sessionId: string) {
     const response = await api.get("/users/session/data", {
       params: { session_id: sessionId },
     });
-
-    console.log(response.data);
 
     return response.data.data as DataPoint[];
   } catch (error) {
@@ -91,14 +92,14 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
 
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
-  }, []);
+  });
 
   const calculateHealth = async () => {
     const sessionData = await FetchSessionData(sessionId);
     const values = getValues(sessionData);
     const numHits = getNumHits(values);
-    const damage = numHits * 0.05;
-    setHealth(1 - damage > 0 ? 1 - damage : 0);
+    const health = (NUM_HITS_FOR_DEATH - numHits) / NUM_HITS_FOR_DEATH;
+    setHealth(Math.max(0, health));
   };
 
   return (

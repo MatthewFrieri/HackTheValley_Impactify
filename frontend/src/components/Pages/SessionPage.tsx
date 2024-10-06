@@ -72,7 +72,7 @@ const SessionPage: React.FC = () => {
           >
             <ArrowBackIcon sx={{ color: "green" }} />
           </Button>
-          {isLiveSession ? "🔴" : "🟢"} {sessionName}
+          {isLiveSession ? "🔴" : "⚪"} {sessionName}
         </Typography>
         {isLiveSession && <StopSession onStopSession={stopSession} />}
       </Box>

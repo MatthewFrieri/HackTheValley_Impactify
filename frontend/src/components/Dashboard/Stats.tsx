@@ -44,14 +44,12 @@ export default function NumHits({ sessionId, isLive }: LiveChartProps) {
   useEffect(() => {
     // Function that triggers every second
     const interval = setInterval(() => {
-      if (isLive) {
-        calculateStats();
-      }
+      calculateStats();
     }, DASHBOARD_REFRESH_TIME);
 
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
-  }, []);
+  });
 
   const calculateStats = async () => {
     const sessionData = await FetchSessionData(sessionId);
