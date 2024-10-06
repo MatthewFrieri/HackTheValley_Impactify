@@ -104,7 +104,7 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
   return (
     <>
       <Typography variant="h4" gutterBottom textAlign={"left"}>
-        Your Brain Health ✔
+        Monitor your Brain Health 🧠
       </Typography>
       <Typography
         variant="subtitle1"
@@ -115,7 +115,7 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
         Monitor your brain health in real-time to ensure you're playing safely.
       </Typography>
 
-      <Grid2 container>
+      <Grid2 container alignItems={"center"}>
         <Box sx={{ width: "40%" }}>
           <Doughnut
             data={{
@@ -123,7 +123,7 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
               datasets: [
                 {
                   data: [(1 - health) * 100.0, health * 100.0],
-                  backgroundColor: ["red", "green"],
+                  backgroundColor: ["#d40d0d", "#0c7015"],
                   borderColor: ["black", "black"],
                   borderWidth: 1,
                 },
