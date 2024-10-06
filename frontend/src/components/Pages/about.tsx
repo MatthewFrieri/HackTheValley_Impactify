@@ -62,7 +62,7 @@ const AboutPage: React.FC = () => {
                             color: '#444'
                         }}
                     >
-                        our motivation is driven by the alarming risks of brain injuries in physical sports like boxing, football, and hockey. Studies show that 87% of boxers experience at least one concussion during their career, and in American football, 99% of NFL players studied showed signs of CTE. In ice hockey, concussions make up 15-30% of all injuries, raising serious concerns about long-term brain health. We are committed to using cutting-edge sensor technology to monitor impacts in real time, helping athletes reduce their risk of brain injuries and protect their future health.
+                            our motivation is driven by the alarming risks of brain injuries in physical sports like boxing, football, and hockey. Studies show that <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10597432/">87%</a> of boxers experience at least one concussion during their career, and in American football, <a href="https://www.bu.edu/articles/2017/cte-former-nfl-players/">99%</a>  of NFL players studied showed signs of CTE. In ice hockey, concussions make up <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8796090/#:~:text=Concussions%20account%20for%2014%25%20to,6.1%20concussions%20per%20100%20games.">15-30%</a>  of all injuries, raising serious concerns about long-term brain health. We are committed to using cutting-edge sensor technology to monitor impacts in real time, helping athletes reduce their risk of brain injuries and protect their future health.
                     </Typography>
                 </Paper>
             </Box>
@@ -111,7 +111,7 @@ const AboutPage: React.FC = () => {
                     Key Features
                 </Typography>
                 <Grid2 container spacing={4} justifyContent="center">
-                    <Grid2 xs={12} md={4}>
+                    <Grid2>
                         <Paper
                             elevation={3}
                             sx={{
@@ -144,7 +144,7 @@ const AboutPage: React.FC = () => {
                             </Typography>
                         </Paper>
                     </Grid2>
-                    <Grid2 xs={12} md={4}>
+                    <Grid2>
                         <Paper
                             elevation={3}
                             sx={{
@@ -177,7 +177,7 @@ const AboutPage: React.FC = () => {
                             </Typography>
                         </Paper>
                     </Grid2>
-                    <Grid2 xs={12} md={4}>
+                    <Grid2>
                         <Paper
                             elevation={3}
                             sx={{
