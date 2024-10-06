@@ -4,7 +4,7 @@ import Stats from "../Dashboard/Stats.tsx";
 import { Box, Button, Typography } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import StopCircle from "@mui/icons-material/StopCircle";
-import api from "../../utils/api.tsx";
+import api from "../../utils/api.ts";
 import LiveChart from "../Dashboard/LiveChart.tsx";
 import BrainHealth from "../Dashboard/BrainHealth.tsx";
 import styles from "./LandingPage.module.css";

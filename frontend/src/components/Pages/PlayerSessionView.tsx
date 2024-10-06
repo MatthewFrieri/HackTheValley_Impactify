@@ -1,5 +1,5 @@
 import React from "react";
-import api from "../../utils/api.tsx";
+import api from "../../utils/api.ts";
 import { Typography, Stack, Grid2 } from "@mui/material";
 import SessionLink from "../buttons/SessionLink.tsx";
 import NewSession from "../buttons/NewSession.tsx";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../../utils/api.tsx";
+import api from "../../utils/api.ts";
 import {
   DASHBOARD_REFRESH_TIME,
   NUM_HITS_FOR_DEATH,

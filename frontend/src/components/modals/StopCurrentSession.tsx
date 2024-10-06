@@ -1,4 +1,4 @@
-import api from '../../utils/api.tsx';
+import api from '../../utils/api.ts';
 import React from 'react';
 import { Modal, Box, Button, Typography } from '@mui/material';
 import styles from './StopCurrentSession.module.css';

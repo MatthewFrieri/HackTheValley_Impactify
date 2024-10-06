@@ -3,7 +3,7 @@ import "chart.js/auto";
 import zoomPlugin from "chartjs-plugin-zoom";
 import { Chart as ChartJS } from "chart.js";
 import { useEffect, useState } from "react";
-import api from "../../utils/api.tsx";
+import api from "../../utils/api.ts";
 import { DASHBOARD_REFRESH_TIME } from "../../utils/constants.tsx";
 import { getValues } from "../../utils/helpers.tsx";
 

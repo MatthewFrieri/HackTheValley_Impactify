@@ -4,7 +4,7 @@ import { Input, InputLabel, Button, Box, Typography } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api.tsx';
+import api from '../../utils/api.ts';
 import { useSnackbar } from 'notistack';
 
 const Login: React.FC = () => {

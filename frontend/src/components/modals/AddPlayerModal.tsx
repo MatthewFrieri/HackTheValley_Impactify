@@ -1,4 +1,4 @@
-import api from '../../utils/api.tsx';
+import api from '../../utils/api.ts';
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import styles from './AddPlayerModal.module.css';

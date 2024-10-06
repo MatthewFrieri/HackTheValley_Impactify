@@ -21,7 +21,7 @@ import {
     ExpandMore,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../../utils/api.tsx'; // Adjust the import path to your API module
+import api from '../../utils/api.ts'; // Adjust the import path to your API module
 
 const drawerWidth = 200;
 

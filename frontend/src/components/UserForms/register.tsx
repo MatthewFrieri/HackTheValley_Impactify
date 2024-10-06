@@ -3,7 +3,7 @@ import { FormControl } from '@mui/material';
 import { Input, InputLabel, Button, Box, Typography, Select, MenuItem } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import api from '../../utils/api.tsx'
+import api from '../../utils/api.ts'
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 
