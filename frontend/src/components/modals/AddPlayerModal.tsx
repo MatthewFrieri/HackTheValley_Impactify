@@ -101,8 +101,8 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ open, handleClose, onAd
             </FormControl>
             <br />
             <br />
-            <Button variant="contained" color="primary" onClick={handleAddPlayer}>
-                Create Session
+            <Button variant="contained" color="success" onClick={handleAddPlayer}>
+                Add Player
             </Button>
             </Box>
         </Modal>

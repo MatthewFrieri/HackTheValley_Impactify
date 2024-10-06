@@ -15,7 +15,7 @@ const NewSession: React.FC<NewSessionProps> = ({ onAddPlayer }) => {
 
     return (
         <>
-            <Button variant="contained" color="primary" onClick={handleOpen}>
+            <Button variant="contained" color="success" onClick={handleOpen}>
                 Add a Player
             </Button>
             <AddPlayerModal open={open} handleClose={handleClose} onAddPlayer={onAddPlayer} />

@@ -217,7 +217,7 @@ const AboutPage: React.FC = () => {
             <Box sx={{ textAlign: 'center', my: 10 }}>
                 <Button
                     variant="contained"
-                    color="primary"
+                    color="success"
                     size="large"
                     sx={{
                         fontSize: '1.2rem',

@@ -72,7 +72,7 @@ const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose, 
                 />
                 <br />
                 <br />
-                <Button variant="contained" color="primary" onClick={handleCreateSession}>
+                <Button variant="contained" color="success" onClick={handleCreateSession}>
                     Create Session
                 </Button>
             </Box>

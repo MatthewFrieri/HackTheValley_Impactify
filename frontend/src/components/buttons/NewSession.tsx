@@ -15,7 +15,7 @@ const NewSession: React.FC<NewSessionProps> = ({ onNewSession }) => {
 
     return (
         <>
-            <Button variant="contained" color="primary" onClick={handleOpen}>
+            <Button variant="contained" color="success" onClick={handleOpen}>
                 New Session +
             </Button>
             <CreateNewSession open={open} handleClose={handleClose} onNewSession={onNewSession} />

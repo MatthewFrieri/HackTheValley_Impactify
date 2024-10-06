@@ -28,6 +28,7 @@ const drawerWidth = 200;
 interface Session {
     id: number;
     name: string;
+    time_end: string;
 }
 
 const Sidebar: React.FC = () => {
@@ -53,6 +54,7 @@ const Sidebar: React.FC = () => {
             const transformedSessions = sessionData.map((session: any) => ({
                 id: session.id || session.session_id,
                 name: session.name || session.session_name || `Session ${session.id || session.session_id}`,
+                end_time: session.time_end,
             }));
 
             setSessions(transformedSessions || []);
@@ -71,6 +73,15 @@ const Sidebar: React.FC = () => {
         localStorage.removeItem('user_type');
         // Redirect to login page
         navigate('/login');
+    };
+
+    const handleSessionClick = (session: Session) => {
+        const url = new URL(`/chart`, window.location.origin);
+        // Append the session ID to the URL
+        url.searchParams.append('session_id', session.id.toString());
+        url.searchParams.append('live', session.time_end === null ? 'true' : 'false');
+        // Navigate to the new URL
+        navigate(url.pathname + url.search);
     };
 
     const menuItems = [

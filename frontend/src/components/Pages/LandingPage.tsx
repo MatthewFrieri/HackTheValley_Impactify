@@ -35,7 +35,7 @@ const LandingPage: React.FC = () => {
         <Typography variant="h6" gutterBottom textAlign={"left"} padding={2}>
           Refresh Sessions:
           <Button variant="text" onClick={refresh} size="small">
-            <RefreshIcon />
+            <RefreshIcon sx={{ color: "green" }} />
           </Button>
         </Typography>
       </Box>

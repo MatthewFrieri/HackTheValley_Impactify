@@ -290,47 +290,326 @@ createRoot(document.getElementById('root')!).render(
 # ======================================================= #
 # /home/deathyvoid/HackTheValley/frontend/src/App.tsx
 
-import './App.css'
-import LandingPage from './components/Pages/LandingPage.tsx';
-import Login from "./components/UserForms /login.tsx";
+// App.tsx
+import './App.css';
+import Login from './components/UserForms/login';
+import Register from './components/UserForms/register';
+import LandingPage from './components/Pages/LandingPage';
+import SessionPage from './components/Pages/SessionPage';
+import About from './components/Pages/about.tsx';
+import Layout from './components/layout.tsx';
+import { SnackbarProvider } from 'notistack';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
 
-  return <>
-    <Login/>
-    <LandingPage userId='1' username='Will' />
-  </>
+  const RequireAuth = ({ children }: { children: JSX.Element }) => {
+    return localStorage.getItem('user_id') ? children : <Navigate to="/login" replace />;
+  };
+
+  return (
+    <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes */}
+          <Route
+              path="/dashboard"
+              element={
+                <RequireAuth>
+                  <Layout>
+                    <LandingPage />
+                  </Layout>
+                </RequireAuth>
+              }
+          />
+          <Route
+              path="/chart"
+              element={
+                <RequireAuth>
+                  <Layout>
+                    <SessionPage />
+                  </Layout>
+                </RequireAuth>
+              }
+          />
+            <Route
+                path="/about"
+                element={
+                    <RequireAuth>
+                        <Layout>
+                            <About />
+                        </Layout>
+                    </RequireAuth>
+                }
+            />
+
+            {/* Redirect all other routes */}
+          <Route
+              path="*"
+              element={<Navigate to="/dashboard" replace />}
+          />
+        </Routes>
+      </Router>
+    </SnackbarProvider>
+  );
 }
 
-export default App
+export default App;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/layout.tsx
+
+// components/Layout.tsx
+import React from 'react';
+import { Box } from '@mui/material';
+import Sidebar from './SideBar/sidebar';
+
+interface LayoutProps {
+    children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+    return (
+        <Box sx={{ display: 'flex' }}>
+            <Sidebar />
+            <Box
+                component="main"
+                sx={{ flexGrow: 1, p: 3 }}
+            >
+                {children}
+            </Box>
+        </Box>
+    );
+};
+
+export default Layout;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/SideBar/sidebar.tsx
+
+// components/SideBar/sidebar.tsx
+import React, { useState, useEffect } from 'react';
+import {
+    Drawer,
+    List,
+    ListItemIcon,
+    ListItemText,
+    Toolbar,
+    Divider,
+    ListItemButton,
+    Box,
+    Collapse,
+    CircularProgress,
+} from '@mui/material';
+import {
+    Info,
+    Dashboard,
+    BarChart,
+    Logout,
+    ExpandLess,
+    ExpandMore,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import api from '../../utils/api'; // Adjust the import path to your API module
+
+const drawerWidth = 200;
+
+interface Session {
+    id: number;
+    name: string;
+}
+
+const Sidebar: React.FC = () => {
+    const navigate = useNavigate();
+    const [sessions, setSessions] = useState<Session[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [sessionsOpen, setSessionsOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        getUserSessions();
+    }, []);
+
+    const getUserSessions = async () => {
+        setLoading(true);
+        try {
+            const userId = localStorage.getItem('user_id');
+            const responseS = await api.get(`/users/session/all`, {
+                params: { user_id: userId },
+            });
+            const sessionData = responseS.data.data.reverse();
+
+            // Transform sessions to have consistent property names
+            const transformedSessions = sessionData.map((session: any) => ({
+                id: session.id || session.session_id,
+                name: session.name || session.session_name || `Session ${session.id || session.session_id}`,
+            }));
+
+            setSessions(transformedSessions || []);
+            console.log('Transformed sessions in Sidebar:', transformedSessions);
+        } catch (error) {
+            console.error('Error fetching user sessions', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        // Remove user data from local storage
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
+        localStorage.removeItem('user_type');
+        // Redirect to login page
+        navigate('/login');
+    };
+
+    const menuItems = [
+        { text: 'About', icon: <Info />, path: '/about' },
+        { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    ];
+
+    return (
+        <Drawer
+            variant="permanent"
+            sx={{
+                width: drawerWidth,
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                [`& .MuiDrawer-paper`]: {
+                    width: drawerWidth,
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'column',
+                },
+            }}
+        >
+            <Toolbar />
+            <Divider />
+            <Box sx={{ flexGrow: 1 }}>
+                <List>
+                    {menuItems.map((item) => (
+                        <ListItemButton
+                            key={item.text}
+                            onClick={() => navigate(item.path)}
+                        >
+                            <ListItemIcon>{item.icon}</ListItemIcon>
+                            <ListItemText primary={item.text} />
+                        </ListItemButton>
+                    ))}
+
+                    {/* Sessions dropdown */}
+                    <ListItemButton onClick={() => setSessionsOpen(!sessionsOpen)}>
+                        <ListItemIcon>
+                            <BarChart />
+                        </ListItemIcon>
+                        <ListItemText primary="Sessions" />
+                        {sessionsOpen ? <ExpandLess /> : <ExpandMore />}
+                    </ListItemButton>
+                    <Collapse in={sessionsOpen} timeout="auto" unmountOnExit>
+                        <List component="div" disablePadding>
+                            {loading ? (
+                                <ListItemButton sx={{ pl: 4 }}>
+                                    <ListItemIcon>
+                                        <CircularProgress size={20} />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Loading..." />
+                                </ListItemButton>
+                            ) : sessions.length > 0 ? (
+                                sessions.map((session) => (
+                                    <ListItemButton
+                                        key={session.id}
+                                        sx={{ pl: 4 }}
+                                        onClick={() => navigate(`/sessions/${session.id}`)}
+                                    >
+                                        <ListItemText
+                                            primary={session.name || `Session ${session.id}`}
+                                        />
+                                    </ListItemButton>
+                                ))
+                            ) : (
+                                <ListItemButton sx={{ pl: 4 }}>
+                                    <ListItemText primary="No sessions available" />
+                                </ListItemButton>
+                            )}
+                        </List>
+                    </Collapse>
+                </List>
+            </Box>
+            <Divider />
+            <List>
+                <ListItemButton onClick={handleLogout}>
+                    <ListItemIcon>
+                        <Logout />
+                    </ListItemIcon>
+                    <ListItemText primary="Logout" />
+                </ListItemButton>
+            </List>
+        </Drawer>
+    );
+};
+
+export default Sidebar;
 
 
 # ======================================================= #
 # /home/deathyvoid/HackTheValley/frontend/src/components/buttons/SessionLink.tsx
 
 import React from 'react';
+import moment from 'moment';
 import { Card, CardActionArea, CardContent, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-interface SessionLinkProps {
-    text: string;
-    link: string;
+interface Session {
+    session_id: string;
+    session_name: string;
+    time_start: string;
+    time_end: string;
 }
 
-const SessionLink: React.FC<SessionLinkProps> = ({ text, link }) => {
-    // const navigate = useNavigate();
+interface SessionLinkProps {
+    session: Session;
+}
+
+const SessionLink: React.FC<SessionLinkProps> = ({ session }) => {
+    // Use the navigate hook to navigate to the chart page
+    const navigate = useNavigate();
+    
+    // If the current session is live
+    const isLive = session.time_end === null;
     
     const handleClick = () => {
-        // navigate('/' + link);
+        const url = new URL(`/chart`, window.location.origin);
+        // Append the session ID to the URL
+        url.searchParams.append('session_id', session.session_id);
+        url.searchParams.append('live', isLive ? 'true' : 'false');
+        // Navigate to the new URL
+        navigate(url.pathname + url.search);
     };
 
     return (
-        <Card>
+        <Card style={{ width: '300px' }}>
             <CardActionArea onClick={handleClick}>
-                <CardContent>
-                    <Typography variant="h5" component="div" align="center">
-                        {text}
+                <CardContent style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="h5" component="div">
+                        {session.session_name}
                     </Typography>
+                    {
+                        isLive ? (
+                            <Typography variant="body2" color="error">
+                                Live 🔴
+                            </Typography>
+                        ) : (
+                            <Typography variant="body2" color="textSecondary">
+                                {moment(session.time_start).fromNow()}
+                            </Typography>
+                        )
+                    }
                 </CardContent>
             </CardActionArea>
         </Card>
@@ -341,16 +620,30 @@ export default SessionLink;
 
 
 # ======================================================= #
-# /home/deathyvoid/HackTheValley/frontend/src/components/buttons/NewSession.tsx
+# /home/deathyvoid/HackTheValley/frontend/src/components/buttons/AddPlayer.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '@mui/material/Button';
+import AddPlayerModal from '../modals/AddPlayerModal';
 
-const NewSession: React.FC = () => {
+interface NewSessionProps {
+    onAddPlayer: () => void;
+}
+
+const NewSession: React.FC<NewSessionProps> = ({ onAddPlayer }) => {
+
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
     return (
-        <Button variant="contained" color="primary">
-            New Session +
-        </Button>
+        <>
+            <Button variant="contained" color="primary" onClick={handleOpen}>
+                Add a Player
+            </Button>
+            <AddPlayerModal open={open} handleClose={handleClose} onAddPlayer={onAddPlayer} />
+        </>
     );
 };
 
@@ -358,7 +651,69 @@ export default NewSession;
 
 
 # ======================================================= #
-# /home/deathyvoid/HackTheValley/frontend/src/components/UserForms /login.tsx
+# /home/deathyvoid/HackTheValley/frontend/src/components/buttons/NewSession.tsx
+
+import React, { useState } from 'react';
+import Button from '@mui/material/Button';
+import CreateNewSession from '../modals/CreateNewSession';
+
+interface NewSessionProps {
+    onNewSession: () => void;
+}
+
+const NewSession: React.FC<NewSessionProps> = ({ onNewSession }) => {
+
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    return (
+        <>
+            <Button variant="contained" color="primary" onClick={handleOpen}>
+                New Session +
+            </Button>
+            <CreateNewSession open={open} handleClose={handleClose} onNewSession={onNewSession} />
+        </>
+    );
+};
+
+export default NewSession;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/buttons/StopSession.tsx
+
+import React, { useState } from 'react';
+import Button from '@mui/material/Button';
+import StopCurrentSession from '../modals/StopCurrentSession';
+
+interface StopSessionProps {
+    onStopSession: () => void;
+}
+
+const StopSession: React.FC<StopSessionProps> = ({ onStopSession }) => {
+
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
+
+    return (
+        <>
+            <Button variant="contained" color="error" onClick={handleOpen}>
+                Stop Session -
+            </Button>
+            <StopCurrentSession open={open} handleClose={handleClose} onStopSession={onStopSession} />
+        </>
+    );
+};
+
+export default StopSession;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/UserForms/login.tsx
 
 import React, { useState } from 'react';
 import FormControl from '@mui/material/FormControl';
@@ -366,14 +721,18 @@ import { Input, InputLabel, Button, Box, Typography } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import axios from "axios";
+import { useNavigate } from 'react-router-dom';
+import api from '../../utils/api';
+import { useSnackbar } from 'notistack';
 
 const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-
+    
+    const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
 
     const handleTogglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -382,28 +741,38 @@ const Login: React.FC = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null); // Reset error before submitting
-
         try {
-            const response = await axios.post('https://c052-184-147-87-140.ngrok-free.app/users/login/', {
+            const response = await api.post('/users/login/', {
                 username: username,
                 password: password
             });
-
             if (response.status === 200) {
-                // Reset the username and password fields after successful login
+                // Store user variables in localStorage
+                localStorage.setItem('user_id', response.data.data.user_id);
+                localStorage.setItem('user_type', response.data.data.user_type);
+                localStorage.setItem('username', username);
+                // Reset the fields after successful login
                 setUsername('');
                 setPassword('');
+                // Debug message
+                enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
+                // Redirect to dashboard
+                navigate('/dashboard');
             }
-
-            console.log('Login successful:', response.data);
-
-            // You can handle further actions like redirecting the user upon success
         } catch (error: any) {
-            console.error('Login error:', error.response?.data || error.message);
-            setError(error.response?.data?.message || 'An error occurred during login');
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
         }
     };
-
 
     return (
         <Box
@@ -414,7 +783,6 @@ const Login: React.FC = () => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                height: '100vh',
                 gap: 2,
                 padding: 3,
                 maxWidth: 400,
@@ -462,11 +830,945 @@ const Login: React.FC = () => {
             >
                 Login
             </Button>
+
+            {error && (
+                <Typography color="error" variant="body1">
+                    {error}
+                </Typography>
+            )}
+
+            <Typography variant="body2" sx={{ mt: 2 }}>
+                Don't have an account?{' '}
+                <Button color="primary" onClick={() => navigate('/register')}>
+                    Register
+                </Button>
+            </Typography>            
+        </Box>
+    );
+};
+
+export default Login;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/UserForms/register.tsx
+
+import React, { useState } from 'react';
+import FormControl from '@mui/material/FormControl';
+import { Input, InputLabel, Button, Box, Typography, Select, MenuItem } from "@mui/material";
+import { InputAdornment, IconButton } from "@mui/material";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import api from '../../utils/api'
+import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
+
+const Register: React.FC = () => {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [userType, setUserType] = useState('player');
+
+    const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
+    
+    const handleTogglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const handleToggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const handlePhoneNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const cleanedNumber = event.target.value.replace(/\D/g, '');
+        const formattedNumber = cleanedNumber.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+        setPhoneNumber(formattedNumber);
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        try {
+            const response = await api.post('/users/register/', {
+                username,
+                email,
+                password,
+                user_type: userType,
+                phone_number: phoneNumber,
+            });
+            if (response.status === 201) {
+                // Reset the fields after successful registration
+                setUsername('');
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
+                // Debug message
+                enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
+                // Override local storage
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                localStorage.removeItem('user_type');
+                // Redirect to login page
+                navigate('/login');
+            }
+        } catch (error: any) {
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
+        }
+    };
+
+    return (
+        <Box
+            component="form"
+            onSubmit={handleRegister}
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+                padding: 3,
+                maxWidth: 400,
+                margin: '0 auto',
+            }}
+        >
+            <Typography variant="h4" gutterBottom>
+                Register New Account
+            </Typography>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="username">Username</InputLabel>
+                <Input
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+            </FormControl>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="email">Email</InputLabel>
+                <Input
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel htmlFor="phoneNum">Phone Number</InputLabel>
+              <Input
+                id="phoneNum"
+                value={phoneNumber}
+                onChange={handlePhoneNumberChange} 
+              />
+            </FormControl>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="password">Password</InputLabel>
+                <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                onClick={handleTogglePasswordVisibility}
+                                edge="end"
+                            >
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </FormControl>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="confirm-password">Confirm Password</InputLabel>
+                <Input
+                    id="confirm-password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    endAdornment={
+                        <InputAdornment position="end">
+                            <IconButton
+                                onClick={handleToggleConfirmPasswordVisibility}
+                                edge="end"
+                            >
+                                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                        </InputAdornment>
+                    }
+                />
+            </FormControl>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="user-type" >I am signing up as a:</InputLabel>
+                <Select
+                    label={'I am signing up as a:'}
+                    id="user-type"
+                    value={userType}
+                    onChange={(e) => setUserType(e.target.value)}
+                    sx={{ height: 40 }}
+                >
+                    <MenuItem value="player">Player</MenuItem>
+                    <MenuItem value="coach">Coach</MenuItem>
+                </Select>
+            </FormControl>
+
+            {error && (
+                <Typography variant="body2" color="error">
+                    {error}
+                </Typography>
+            )}
+
+            <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ mt: 2 }}
+            >
+                Register
+            </Button>
+
+            {error && (
+                <Typography variant="body2" color="error">
+                    {error}
+                </Typography>
+            )}
+
+            <Typography variant="body2" sx={{ mt: 2 }}>
+                Already have an account?{' '}
+                <Button color="primary" onClick={() => navigate('/login')}>
+                    Log In
+                </Button>
+            </Typography>
         </Box>
     );
 }
 
-export default Login;
+export default Register;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/UserForms/protected.tsx
+
+// import React, { useEffect, useState } from 'react';
+// import { Navigate } from 'react-router-dom';
+// import api from '../../utils/api'; // Axios or Fetch API configuration
+//
+// interface ProtectedRouteProps {
+//     children: React.ReactNode;
+// }
+//
+// const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+//     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+//
+//     useEffect(() => {
+//         // Make an API call to check if the session is valid
+//         const checkAuth = async () => {
+//             try {
+//                 const response = await api.get('/users/check-auth/', { withCredentials: true }); // API to check authentication status
+//                 if (response.status === 200) {
+//                     setIsAuthenticated(true); // User is authenticated
+//                 }
+//             } catch (error) {
+//                 setIsAuthenticated(false); // User is not authenticated
+//             }
+//         };
+//
+//         checkAuth();
+//     }, []);
+//
+//     // Wait for the authentication check to complete
+//     if (isAuthenticated === null) {
+//         return <div>Loading...</div>;
+//     }
+//
+//     // If not authenticated, redirect to login
+//     if (!isAuthenticated) {
+//         return <Navigate to="/login" replace />;
+//     }
+//
+//     // If authenticated, render the requested page
+//     return <>{children}</>;
+// };
+//
+// export default ProtectedRoute;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/modals/AddPlayerModal.tsx
+
+import api from '../../utils/api';
+import React, { useState, useEffect } from 'react';
+import { Modal, Box, TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import styles from './AddPlayerModal.module.css';
+import { useSnackbar } from 'notistack';
+
+interface AddPlayerModalProps {
+    open: boolean
+    handleClose: () => void;
+    onAddPlayer: () => void;
+}
+
+interface Player {
+    id: string;
+    username: string;
+}
+
+const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ open, handleClose, onAddPlayer }) => {
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    // Get the userId from localStorage
+    const userId = localStorage.getItem('user_id');
+
+    const [loading, setLoading] = useState<boolean>(true);
+    const [players, setPlayers] = useState<Player[]>([]);
+    const [player, setPlayer] = useState('');
+
+    const getPlayers = async () => {
+        setLoading(true);
+        // Get all the players
+        const response = await api.get('/users/players/all/', { params: { user_id: userId } });
+        // Set the state to the players
+        setPlayers(response.data.data || []);
+        setLoading(false);
+    };
+
+    const handleAddPlayer = async () => {
+        // Make sure the userId is not null
+        if (!userId) {
+            console.error('User ID is null');
+            return;
+        }
+        // Make sure the player is not empty
+        if (!player) {
+            console.error('Player is empty');
+            return;
+        }
+        try {
+            // Add a player to the coach's team
+            const response = await api.post('/users/coach/players/', { user_id: userId, player_id: player });
+            // Success message
+            enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
+            // Close the modal on successful addition
+            handleClose();
+            // Call the onAddPlayer callback to refresh the players
+            onAddPlayer();
+        } catch (error: any) {
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
+        }
+    }
+
+    // Get the players on mount
+    useEffect(() => { getPlayers() }, []);
+
+    return (
+        <Modal open={open} onClose={handleClose}>
+            <Box className={styles.modalBox}>
+            <Typography variant="h6" component="h2" gutterBottom>
+                Create New Session
+            </Typography>
+            <br />
+            <br />
+            <FormControl fullWidth>
+                <InputLabel htmlFor="coach-player" >Add a player to the team:</InputLabel>
+                <Select
+                    label={'Add a player to the team:'}
+                    id="coach-player"
+                    value={player}
+                    onChange={(e) => setPlayer(e.target.value)}
+                    sx={{ height: 60 }}
+                >
+                    {
+                        Array.isArray(players) && players.length > 0 ? (
+                            players.map((p, index) => <MenuItem value={p.id.toString()} key={index}>{p.username}</MenuItem>)
+                        ) : (
+                            <MenuItem value="" disabled>No players available</MenuItem>
+                        )
+                    }
+                </Select>
+            </FormControl>
+            <br />
+            <br />
+            <Button variant="contained" color="primary" onClick={handleAddPlayer}>
+                Create Session
+            </Button>
+            </Box>
+        </Modal>
+    );
+};
+
+export default AddPlayerModal;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/modals/StopCurrentSession.module.css
+
+/* Main container within the modal */
+.modalBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background-color: var(--background-paper, #fff);
+    box-shadow: 24px 24px 48px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+}
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/modals/StopCurrentSession.tsx
+
+import api from '../../utils/api';
+import React, { useState } from 'react';
+import { Modal, Box, TextField, Button, Typography } from '@mui/material';
+import styles from './StopCurrentSession.module.css';
+import { useSnackbar } from 'notistack';
+
+interface StopCurrentSessionProps {
+    open: boolean
+    handleClose: () => void;
+    onStopSession: () => void;
+}
+
+const StopCurrentSession: React.FC<StopCurrentSessionProps> = ({ open, handleClose, onStopSession }) => {
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    const handleStopSession = async () => {
+        try {
+            const response = await api.post('/users/session/end/', { user_id: localStorage.getItem('user_id') });
+            // Success message
+            enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
+            // Close the modal on successful creation
+            handleClose();
+            // Call the onStopSession callback to refresh the sessions
+            onStopSession();
+        } catch (error: any) {
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
+        }
+    };
+
+    return (
+        <Modal open={open} onClose={handleClose}>
+            <Box className={styles.modalBox}>
+                <Typography variant="h6" component="h2" gutterBottom>
+                    Stop Your Current Session
+                </Typography>
+                <Typography variant="h6" component="p" gutterBottom>
+                    Stopping your current session will end the tracking of metrics from the helmet.
+                    The session data can then be viewed in the Metrics dashboard. 
+                </Typography>
+                <Button variant="contained" color="error" onClick={handleStopSession}>
+                    Stop Session
+                </Button>
+            </Box>
+        </Modal>
+    );
+};
+
+export default StopCurrentSession;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/modals/AddPlayerModal.module.css
+
+/* Main container within the modal */
+.modalBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background-color: var(--background-paper, #fff);
+    box-shadow: 24px 24px 48px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+}
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/modals/CreateNewSession.module.css
+
+/* Main container within the modal */
+.modalBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background-color: var(--background-paper, #fff);
+    box-shadow: 24px 24px 48px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+}
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/modals/CreateNewSession.tsx
+
+import api from '../../utils/api';
+import React, { useState } from 'react';
+import { Modal, Box, TextField, Button, Typography } from '@mui/material';
+import styles from './CreateNewSession.module.css';
+import { useSnackbar } from 'notistack';
+
+interface CreateNewSessionProps {
+    open: boolean
+    handleClose: () => void;
+    onNewSession: () => void;
+}
+
+const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose, onNewSession }) => {
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    const [sessionName, setSessionName] = useState('');
+
+    const handleSessionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSessionName(event.target.value);
+    };
+
+    const handleCreateSession = async () => {
+        // Get the userId from localStorage
+        const userId = localStorage.getItem('user_id');
+        // Make sure the userId is not null
+        if (!userId) {
+            console.error('User ID is null');
+            return;
+        }
+        // Make sure the session name is not empty
+        if (!sessionName) {
+            console.error('Session name is empty');
+            return;
+        }
+        try {
+            // Create a new session with the session name and userId
+            const response = await api.post('/users/session/start/', { session_name: sessionName, user_id: userId }); 
+            // Success message
+            enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
+            // Close the modal on successful creation
+            handleClose(); 
+            // Call the onNewSession callback to refresh the sessions
+            onNewSession();
+        } catch (error: any) {
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
+        }
+    };
+
+    return (
+        <Modal open={open} onClose={handleClose}>
+            <Box className={styles.modalBox}>
+                <Typography variant="h6" component="h2" gutterBottom>
+                    Create New Session
+                </Typography>
+                <TextField
+                    label="Session Name"
+                    fullWidth
+                    value={sessionName}
+                    onChange={handleSessionNameChange}
+                    margin="normal"
+                />
+                <br />
+                <br />
+                <Button variant="contained" color="primary" onClick={handleCreateSession}>
+                    Create Session
+                </Button>
+            </Box>
+        </Modal>
+    );
+};
+
+export default CreateNewSession;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Pages/about.tsx
+
+import React from 'react';
+import {
+    Container,
+    Typography,
+    Paper,
+    Button,
+    Box, Grid2,
+} from '@mui/material';
+
+const AboutPage: React.FC = () => {
+    return (
+        <Container maxWidth="lg" sx={{ py: 6 }}>
+            {/* Hero Section */}
+            <Box sx={{ mb: 8, textAlign: 'center' }}>
+                <Typography
+                    variant="h3"
+                    component="h1"
+                    gutterBottom
+                    sx={{
+                        fontWeight: 600,
+                        color: '#222',
+                        fontSize: { xs: '2.5rem', md: '3.5rem' },
+                    }}
+                >
+                    About NULL
+                </Typography>
+                <Typography
+                    variant="h6"
+                    component="p"
+                    color="textSecondary"
+                    sx={{
+                        maxWidth: 800,
+                        mx: 'auto',
+                        fontSize: { xs: '1rem', md: '1.25rem' },
+                        lineHeight: 1.8,
+                        color: '#555'
+                    }}
+                >
+                    Revolutionizing combat sports by integrating technology into sports headwear to monitor and give insights on your brain health.
+                </Typography>
+            </Box>
+
+            {/* Mission Section */}
+            <Box sx={{ my: 10 }}>
+                <Paper elevation={3} sx={{ p: 6, backgroundColor: '#fafafa', textAlign: 'center', borderRadius: 3 }}>
+                    <Typography
+                        variant="h4"
+                        gutterBottom
+                        sx={{
+                            fontWeight: 'bold',
+                            color: '#1976d2',
+                            mb: 2
+                        }}
+                    >
+                        Our Motivation
+                    </Typography>
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            fontSize: '1.25rem',
+                            lineHeight: 1.75,
+                            color: '#444'
+                        }}
+                    >
+                        our motivation is driven by the alarming risks of brain injuries in physical sports like boxing, football, and hockey. Studies show that 87% of boxers experience at least one concussion during their career, and in American football, 99% of NFL players studied showed signs of CTE. In ice hockey, concussions make up 15-30% of all injuries, raising serious concerns about long-term brain health. We are committed to using cutting-edge sensor technology to monitor impacts in real time, helping athletes reduce their risk of brain injuries and protect their future health.
+                    </Typography>
+                </Paper>
+            </Box>
+
+            {/* Vision Section */}
+            <Box sx={{ my: 10 }}>
+                <Paper elevation={3} sx={{ p: 6, backgroundColor: '#f4f7fc', textAlign: 'center', borderRadius: 3 }}>
+                    <Typography
+                        variant="h4"
+                        gutterBottom
+                        sx={{
+                            fontWeight: 'bold',
+                            color: '#1976d2',
+                            mb: 2
+                        }}
+                    >
+                        Our Vision
+                    </Typography>
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            fontSize: '1.25rem',
+                            lineHeight: 1.75,
+                            color: '#444'
+                        }}
+                    >
+                        We envision a world where athletes are empowered by technology to prevent injuries,
+                        optimize performance, and safeguard their long-term brain health,
+                        ensuring a safer and more sustainable future for combat sports.
+                    </Typography>
+                </Paper>
+            </Box>
+
+            {/* Key Features Section */}
+            <Box sx={{ my: 12 }}>
+                <Typography
+                    variant="h4"
+                    gutterBottom
+                    align="center"
+                    sx={{
+                        fontWeight: 'bold',
+                        color: '#333',
+                        mb: 5
+                    }}
+                >
+                    Key Features
+                </Typography>
+                <Grid2 container spacing={4} justifyContent="center">
+                    <Grid2 xs={12} md={4}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 4,
+                                textAlign: 'center',
+                                backgroundColor: '#fff',
+                                borderRadius: 3
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                gutterBottom
+                                sx={{
+                                    fontWeight: 'bold',
+                                    color: '#1976d2',
+                                    mb: 1.5
+                                }}
+                            >
+                                Real-Time Impact Analysis
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: '#666',
+                                    lineHeight: 1.7
+                                }}
+                            >
+                                Our system uses an ESP32, accelerometer, and pressure sensors to measure the force of impacts during training and fights,
+                                giving athletes and coaches real-time data to assess performance and risks.
+                            </Typography>
+                        </Paper>
+                    </Grid2>
+                    <Grid2 xs={12} md={4}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 4,
+                                textAlign: 'center',
+                                backgroundColor: '#fff',
+                                borderRadius: 3
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                gutterBottom
+                                sx={{
+                                    fontWeight: 'bold',
+                                    color: '#1976d2',
+                                    mb: 1.5
+                                }}
+                            >
+                                Brain Health Monitoring
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: '#666',
+                                    lineHeight: 1.7
+                                }}
+                            >
+                                By leveraging accelerometers, we monitor head movement and acceleration to track potential brain trauma,
+                                helping athletes avoid long-term injuries and providing a safer training environment.
+                            </Typography>
+                        </Paper>
+                    </Grid2>
+                    <Grid2 xs={12} md={4}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 4,
+                                textAlign: 'center',
+                                backgroundColor: '#fff',
+                                borderRadius: 3
+                            }}
+                        >
+                            <Typography
+                                variant="h6"
+                                gutterBottom
+                                sx={{
+                                    fontWeight: 'bold',
+                                    color: '#1976d2',
+                                    mb: 1.5
+                                }}
+                            >
+                                Performance Insights & Session Tracking
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: '#666',
+                                    lineHeight: 1.7
+                                }}
+                            >
+                                Our platform offers comprehensive session tracking with detailed insights into each athlete's performance,
+                                empowering data-driven training and progress monitoring over time.
+                            </Typography>
+                        </Paper>
+                    </Grid2>
+                </Grid2>
+            </Box>
+
+            {/* Call to Action */}
+            <Box sx={{ textAlign: 'center', my: 10 }}>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    sx={{
+                        fontSize: '1.2rem',
+                        px: 6,
+                        py: 2,
+                        borderRadius: 3,
+                        textTransform: 'none'
+                    }}
+                >
+                    Learn More About Our Technology
+                </Button>
+            </Box>
+        </Container>
+    );
+};
+
+export default AboutPage;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Pages/PlayerSessionView.tsx
+
+import React from "react";
+import api from "../../utils/api";
+import { Typography, Stack, Grid2 } from "@mui/material";
+import SessionLink from "../buttons/SessionLink";
+import NewSession from "../buttons/NewSession";
+import StopSession from "../buttons/StopSession";
+
+interface PlayerSessionViewProps {
+    userId: string;
+    allowNewSession: boolean;
+}
+
+interface Session {
+  session_id: string;
+  session_name: string;
+  time_start: string;
+  time_end: string;
+}
+
+const PlayerSessionView: React.FC<PlayerSessionViewProps> = ({ userId, allowNewSession }) => {
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const [sessions, setSessions] = React.useState<Session[]>([]);
+  const [canMakeSession, setCanMakeSession] = React.useState<boolean>(false);
+
+  const getUserSessions = async () => {
+    setLoading(true);
+    // Using the users' ID, get all the sessions they have previously created
+    // This will be used to display the previous sessions on the landing page
+    const response = await api.get(`/users/session/all`, { params: { user_id: userId } });
+    // If there are sessions, reverse the list so most recent is first
+    response.data.data.reverse();
+    // Set the state to the session IDs
+    setSessions(response.data.data || []);
+    // Can only make a session if there are no active sessions
+    if (sessions.length === 0) {
+        // Can make a session if there are no sessions
+        setCanMakeSession(true);
+    }
+    else {
+        // Can make a session if the last session has ended
+        setCanMakeSession(response.data.data[0].time_end !== null);
+    }
+    // Stop loading
+    setLoading(false);
+  };
+
+  React.useEffect(() => {
+    // Get user sessions on mount
+    getUserSessions();
+  }, []);
+
+    return (
+        <>
+            <Stack direction="column" spacing={2} alignItems="flex-start" sx={{ maxWidth: '600px', width: '100%', marginBottom: '20px' }}>
+                {
+                allowNewSession && (
+                    canMakeSession ? (
+                    <NewSession onNewSession={getUserSessions} />
+                    ) : (
+                    <StopSession onStopSession={getUserSessions} />
+                    )
+                )
+                }
+            </Stack>
+            <Grid2 container columns={3} columnGap={3} rowGap={3}>
+            {loading ? (
+                <Typography variant="body1" gutterBottom>
+                Loading...
+                </Typography>
+            ) : Array.isArray(sessions) && sessions.length > 0 ? (
+                sessions.map((s, index) => (
+                <SessionLink
+                    session={s}
+                    key={index}
+                />
+                ))
+            ) : (
+                <Typography variant="body1" gutterBottom>
+                You have no sessions, create a new one to get started!
+                </Typography>
+            )}
+            </Grid2>
+        </>
+    );
+};
+
+export default PlayerSessionView;
 
 
 # ======================================================= #
@@ -492,61 +1794,696 @@ export default Login;
 
 
 # ======================================================= #
-# /home/deathyvoid/HackTheValley/frontend/src/components/Pages/LandingPage.tsx
+# /home/deathyvoid/HackTheValley/frontend/src/components/Pages/CoachSessionView.tsx
 
-import React from 'react';
-import api from '../../utils/api';
-import { Box, Typography, Stack } from '@mui/material';
-import SessionLink from '../buttons/SessionLink';
-import NewSession from '../buttons/NewSession';
-import styles from './LandingPage.module.css';
+import React from "react";
+import api from "../../utils/api";
+import { Typography, Stack } from "@mui/material";
+import SessionLink from "../buttons/SessionLink";
+import NewSession from "../buttons/NewSession";
+import StopSession from "../buttons/StopSession";
+import PlayerSessionView from "./PlayerSessionView";
+import AddPlayer from "../buttons/AddPlayer";
 
-interface LandingPageProps {
+interface CoachSessionViewProps {
     userId: string;
+}
+
+interface Session {
+  session_id: string;
+  session_name: string;
+  time_start: string;
+  time_end: string;
+}
+
+interface Player {
+    user_id: string;
     username: string;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ userId, username }) => {
-
+const CoachSessionView: React.FC<CoachSessionViewProps> = ({ userId }) => {
     const [loading, setLoading] = React.useState<boolean>(true);
-    const [sessions, setSessions] = React.useState<string[]>([]);
-
-    const getUserSessions = async () => {
-        setLoading(true);
-        // Using the users' ID, get all the sessions they have previously created
-        // This will be used to display the previous sessions on the landing page
-        const response = await api.get(`/users/sessions/${userId}`);
-        // HACK: Since we don't have any data yet
-        response.data = ["1", "2", "3", "4", "5"];
-        // Set the state to the session IDs
-        setSessions(response.data);
-        setLoading(false);
-    }
-
-    React.useEffect(() => {
-        // Get user sessions on mount
-        getUserSessions();
-    }, []);
-
+    const [players, setPlayers] = React.useState<Player[]>([]);
+  
+    const getCoachsPlayers = async () => {
+      setLoading(true);
+      // Using the user ID, get all the players that the coach has sessions with
+      const response = await api.get(`/users/coach/players/`, { params: { user_id: userId } });;
+      // Set the state to the session IDs
+      setPlayers(response.data.data || []);
+      // Stop loading
+      setLoading(false);
+    };
+  
+    // Get the players on mount
+    React.useEffect(() => { getCoachsPlayers() }, []);
+  
     return (
-        <Box className={styles.mainBox}>
-            <Box className={styles.headerBox}>
-                <Typography variant="h4">Hello {username} 👋</Typography> 
-                <NewSession />
-            </Box>
-
-            <Typography variant="h6" gutterBottom textAlign={'left'}>
-                Your Previous Sessions:
-            </Typography>
-
-            <Stack direction="row" spacing={2}>
-                { sessions.map((link, _) => <SessionLink link={link} text={"Game"} />) }
-            </Stack> 
-        </Box>
+        <>
+            <Stack direction="column" spacing={2} alignItems="flex-start" sx={{ maxWidth: '600px', width: '100%', marginBottom: '20px' }}>
+                <AddPlayer onAddPlayer={getCoachsPlayers} />
+            </Stack>
+            {
+                loading ? (
+                    <Typography variant="body1" gutterBottom>
+                        Loading players...
+                    </Typography>
+                ) : (
+                    Array.isArray(players) && players.length > 0 ? (
+                        players.map((p, index) => (
+                            <>
+                                <Typography variant="h5" gutterBottom textAlign={"left"}>
+                                    {p.username}'s Sessions
+                                </Typography>
+                                <PlayerSessionView userId={p.user_id} allowNewSession={false} key={index} />
+                            </>
+                            
+                        )
+                    )
+                    ) : (
+                        <Typography variant="body1" gutterBottom>
+                            Your team is empty! Add some players to get started.
+                        </Typography>
+                    )
+                )
+            }
+        </>
     );
+  };
+  
+  export default CoachSessionView;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Pages/SessionPage.tsx
+
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Stats from "../Dashboard/Stats";
+import { Box, Button, Typography } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import api from "../../utils/api";
+import LiveChart from "../Dashboard/LiveChart";
+import BrainHealth from "../Dashboard/BrainHealth";
+
+const SessionPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [sessionName, setSessionName] = useState<string | null>(null);
+
+  const getQueryParams = () => {
+    return new URLSearchParams(location.search);
+  };
+
+  const fetchSessionDetails = async (sessionId: string) => {
+    try {
+      const response = await api.get(`/session/${sessionId}`);
+      setSessionName(response.data.session_name);
+    } catch (error) {
+      console.error("Error fetching session details", error);
+    }
+  };
+
+  useEffect(() => {
+    const sessionId = getQueryParams().get("session_id");
+    if (sessionId) {
+      fetchSessionDetails(sessionId);
+    }
+  }, [location.search]);
+
+  return (
+    <Box sx={{ padding: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        {/* Back Button on the right */}
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(-1)} // Navigate back to the previous page
+          variant="outlined"
+          sx={{ ml: "auto" }} // Ensure the button stays on the far right
+        >
+          Back
+        </Button>
+      </Box>
+
+      <LiveChart sessionId={getQueryParams().get("session_id") || ""} />
+      <Stats sessionId={getQueryParams().get("session_id") || ""} />
+      <BrainHealth sessionId={getQueryParams().get("session_id") || ""} />
+    </Box>
+  );
+};
+
+export default SessionPage;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Pages/LandingPage.tsx
+
+import React from "react";
+import api from "../../utils/api";
+import { Box, Typography, Stack, Button } from "@mui/material";
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SessionLink from "../buttons/SessionLink";
+import NewSession from "../buttons/NewSession";
+import StopSession from "../buttons/StopSession";
+import styles from "./LandingPage.module.css";
+import PlayerSessionView from "./PlayerSessionView";
+import CoachSessionView from "./CoachSessionView";
+
+interface Session {
+  session_id: string;
+  session_name: string;
+  time_start: string;
+  time_end: string;
+}
+
+const LandingPage: React.FC = () => {
+
+  const userId = localStorage.getItem("user_id") || "";
+  const isCoach = localStorage.getItem("user_type") === "coach";
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  const refresh = async () => {
+    setRefreshKey(oldKey => oldKey + 1);
+  };
+
+  return (
+    <Box className={styles.mainBox}>
+      <Box className={styles.headerBox}>
+        <Typography variant="h4">
+          Hello {localStorage.getItem("username")} 👋
+        </Typography>
+        <Typography variant="h6" gutterBottom textAlign={"left"} padding={2}>
+          Refresh Sessions:
+          <Button variant="text" onClick={refresh} size="small">
+            <RefreshIcon />
+          </Button>
+        </Typography>
+      </Box>
+
+      { isCoach ? <CoachSessionView key={refreshKey} userId={userId} /> : <PlayerSessionView key={refreshKey} userId={userId} allowNewSession={true} /> }
+
+    </Box>
+  );
 };
 
 export default LandingPage;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Dashboard/BrainHealth.tsx
+
+import { useEffect, useState } from "react";
+import api from "../../utils/api";
+import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
+import { Doughnut } from "react-chartjs-2";
+import { getNumHits, getValues } from "../../utils/helpers";
+import Insights from "./Insights";
+
+interface LiveChartProps {
+  sessionId: string;
+}
+
+interface DataPoint {
+  timestamp: string;
+  pressure_l: number;
+  pressure_r: number;
+  pressure_b: number;
+  pressure_t: number;
+  accel_x: number;
+  accel_y: number;
+  accel_z: number;
+}
+
+// Fetches session data based on the session ID stored in local storage
+async function FetchSessionData(sessionId: string) {
+  try {
+    // Make the API call to fetch session stats
+    const response = await api.get("/users/session/data", {
+      params: { session_id: sessionId },
+    });
+
+    return response.data.data as DataPoint[];
+  } catch (error) {
+    console.error("Error fetching session data:", error);
+    return []; // Handle error case appropriately
+  }
+}
+
+export default function BrainHealth({ sessionId }: LiveChartProps) {
+  const [health, setHealth] = useState(1);
+
+  useEffect(() => {
+    // Function that triggers every second
+    const interval = setInterval(() => {
+      calculateHealth();
+    }, DASHBOARD_REFRESH_TIME);
+
+    // Cleanup the interval when the component unmounts
+    return () => clearInterval(interval);
+  }, []);
+
+  const calculateHealth = async () => {
+    const sessionData = await FetchSessionData(sessionId);
+    const values = getValues(sessionData);
+    const numHits = getNumHits(values);
+    const damage = numHits * 0.05;
+    setHealth(1 - damage > 0 ? 1 - damage : 0);
+  };
+
+  return (
+    <>
+      <h1>Health: {health}</h1>
+      <Doughnut
+        data={{
+          labels: ["", ""],
+          datasets: [
+            {
+              data: [1 - health, health],
+              backgroundColor: ["red", "green"],
+              borderColor: ["black", "black"],
+              borderWidth: 1,
+            },
+          ],
+        }}
+      />
+      <h1>Insights:</h1>
+      <Insights health={health} />
+    </>
+  );
+}
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Dashboard/Insights.tsx
+
+import React from "react";
+import { Card, CardContent, Typography } from "@mui/material";
+
+// Function to get title and message based on health value
+const getInsights = (health: number) => {
+  if (health === 1) {
+    return {
+      title: "All Clear!",
+      message:
+        "Your head has been well-protected. Keep playing safely and maintain your good form.",
+    };
+  } else if (health > 0.75) {
+    return {
+      title: "Minor Impacts",
+      message:
+        "You've taken a few hits, but nothing serious so far. Stay cautious, and be aware of the force of impacts.",
+    };
+  } else if (health > 0.5) {
+    return {
+      title: "Moderate Impacts Detected",
+      message:
+        "You've received some moderate impacts. It's a good idea to monitor the situation closely and avoid further hard hits.",
+    };
+  } else if (health > 0.25) {
+    return {
+      title: "Significant Impacts",
+      message:
+        "You've taken some serious hits. Consider taking a break and assessing if it's safe to continue playing.",
+    };
+  } else if (health > 0) {
+    return {
+      title: "Critical Impact Detected",
+      message:
+        "You've experienced a heavy blow to the head. Immediate medical attention is recommended to ensure there are no long-term effects.",
+    };
+  } else {
+    return {
+      title: "Emergency Situation",
+      message:
+        "Severe trauma detected. Immediate medical attention is necessary. Stop playing and seek emergency assistance right away.",
+    };
+  }
+};
+
+type InsightsProps = {
+  health: number;
+};
+
+export const Insights: React.FC<InsightsProps> = ({ health }) => {
+  const { title, message } = getInsights(health);
+
+  return (
+    <Card sx={{ maxWidth: 400, margin: "20px auto" }}>
+      <CardContent>
+        <Typography variant="h5" component="div">
+          {title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {message}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default Insights;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Dashboard/Stats.tsx
+
+import { useEffect, useState } from "react";
+import api from "../../utils/api";
+import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
+import { getNumHits, getValues } from "../../utils/helpers";
+
+interface LiveChartProps {
+  sessionId: string;
+}
+
+interface DataPoint {
+  timestamp: string;
+  pressure_l: number;
+  pressure_r: number;
+  pressure_b: number;
+  pressure_t: number;
+  accel_x: number;
+  accel_y: number;
+  accel_z: number;
+}
+
+// Fetches session data based on the session ID stored in local storage
+async function FetchSessionData(sessionId: string) {
+  try {
+    // Make the API call to fetch session stats
+    const response = await api.get("/users/session/data", {
+      params: { session_id: sessionId },
+    });
+
+    return response.data.data as DataPoint[];
+  } catch (error) {
+    console.error("Error fetching session data:", error);
+    return []; // Handle error case appropriately
+  }
+}
+
+export default function NumHits({ sessionId }: LiveChartProps) {
+  const [numHits, setNumHits] = useState(0);
+  const [biggestHit, setBiggestHit] = useState(0);
+  const [mostVulnerable, setMostVulnerable] = useState("...");
+
+  useEffect(() => {
+    // Function that triggers every second
+    const interval = setInterval(() => {
+      calculateStats();
+    }, DASHBOARD_REFRESH_TIME);
+
+    // Cleanup the interval when the component unmounts
+    return () => clearInterval(interval);
+  }, []);
+
+  const calculateStats = async () => {
+    const sessionData = await FetchSessionData(sessionId);
+    const values = getValues(sessionData);
+
+    // Calculate numHits
+    setNumHits(getNumHits(values));
+
+    // Calculate biggestHit
+    setBiggestHit(Math.round(Math.max(...values)));
+
+    // Calculate vulnerableSide
+    const leftDamage: [number, string] = [
+      sessionData
+        .map((dataPoint) => dataPoint.pressure_l)
+        .reduce((a, b) => a + b, 0),
+      "Left",
+    ];
+    const rightDamage: [number, string] = [
+      sessionData
+        .map((dataPoint) => dataPoint.pressure_r)
+        .reduce((a, b) => a + b, 0),
+      "Right",
+    ];
+    const topDamage: [number, string] = [
+      sessionData
+        .map((dataPoint) => dataPoint.pressure_t)
+        .reduce((a, b) => a + b, 0),
+      "Top",
+    ];
+    const backDamage: [number, string] = [
+      sessionData
+        .map((dataPoint) => dataPoint.pressure_b)
+        .reduce((a, b) => a + b, 0),
+      "Back",
+    ];
+
+    const sides: [number, string][] = [
+      leftDamage,
+      rightDamage,
+      topDamage,
+      backDamage,
+    ];
+
+    sides.sort((a, b) => b[0] - a[0]);
+
+    setMostVulnerable(sides[0][1]);
+  };
+
+  return (
+    <>
+      <div>
+        <p># hits taken:</p>
+        <h1>{numHits}</h1>
+      </div>
+      <div>
+        <p>biggest hit:</p>
+        <h1>{biggestHit}</h1>
+      </div>
+      <div>
+        <p>most vulnerable</p>
+        <h1>{mostVulnerable}</h1>
+      </div>
+    </>
+  );
+}
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/components/Dashboard/LiveChart.tsx
+
+import { Line } from "react-chartjs-2";
+import "chart.js/auto";
+import zoomPlugin from "chartjs-plugin-zoom";
+import { Chart as ChartJS } from "chart.js";
+import { useEffect, useState } from "react";
+import api from "../../utils/api";
+import {
+  DASHBOARD_REFRESH_TIME,
+  LIVE_CHART_CAPACITY,
+} from "../../utils/constants";
+import { getValues } from "../../utils/helpers";
+
+ChartJS.register(zoomPlugin);
+
+interface LiveChartProps {
+  sessionId: string;
+}
+
+interface DataPoint {
+  timestamp: string;
+  pressure_l: number;
+  pressure_r: number;
+  pressure_b: number;
+  pressure_t: number;
+  accel_x: number;
+  accel_y: number;
+  accel_z: number;
+}
+
+// Fetches session data based on the session ID stored in local storage
+async function FetchSessionData(sessionId: string) {
+  try {
+    // Make the API call to fetch session stats
+    const response = await api.get("/users/session/data", {
+      params: { session_id: sessionId },
+    });
+
+    // Return the data received from the API
+    const values = getValues(response.data.data as DataPoint[]);
+
+    return values;
+  } catch (error) {
+    console.error("Error fetching session data:", error);
+    return []; // Handle error case appropriately
+  }
+}
+
+// Initial chart data
+const initialData = {
+  labels: [""],
+  datasets: [
+    {
+      label: "My dataset",
+      data: [0],
+      fill: true,
+      backgroundColor: "rgba(75,192,192,0.2)",
+      borderColor: "rgba(75,192,192,1)",
+    },
+  ],
+};
+
+export default function LiveChart({ sessionId }: LiveChartProps) {
+  const [data, setData] = useState(initialData);
+  let alsoData = initialData;
+
+  useEffect(() => {
+    // Function that triggers every second
+    const interval = setInterval(() => {
+      handleAddEntries();
+    }, DASHBOARD_REFRESH_TIME);
+
+    // Cleanup the interval when the component unmounts
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate the maximum y-axis value dynamically (110% of highest value in dataset)
+  const getMaxValue = () => {
+    const allData = data.datasets.flatMap((dataset) => dataset.data);
+    const maxValue = Math.max(...allData);
+    return Math.round(maxValue * 1.1); // Set max value to 110% of highest value
+  };
+
+  const addNewEntries = (newValues: number[]) => {
+    const currentLength = alsoData.datasets[0].data.length;
+    const proposedLength = currentLength + newValues.length;
+
+    const newLabels = Array(proposedLength).fill("");
+    const newPoints = [...alsoData.datasets[0].data, ...newValues];
+
+    const newData = {
+      labels: newLabels,
+      datasets: [
+        {
+          ...alsoData.datasets[0],
+          data: newPoints,
+        },
+      ],
+    };
+
+    alsoData = newData;
+    setData(newData);
+  };
+
+  const handleAddEntries = async () => {
+    const allSessionValues = await FetchSessionData(sessionId);
+
+    const potentialValues = [0, ...allSessionValues];
+    const currentValues = alsoData.datasets[0].data;
+    const areEqual =
+      JSON.stringify(potentialValues) === JSON.stringify(currentValues);
+
+    if (!areEqual) {
+      console.log("not equal");
+      console.log(currentValues);
+      console.log(potentialValues);
+
+      const valuesToUse =
+        alsoData.datasets[0].data.length == 1
+          ? allSessionValues
+          : allSessionValues.slice(-10);
+
+      addNewEntries(valuesToUse);
+    } else {
+      console.log("equal so dont update");
+    }
+  };
+
+  return (
+    <Line
+      data={data}
+      options={{
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: 0,
+            max: getMaxValue(), // Set the max dynamically
+          },
+        },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: "x",
+              scaleMode: "x",
+            },
+            zoom: {
+              wheel: {
+                enabled: true, // Enable wheel zooming
+              },
+              mode: "x",
+            },
+          },
+        },
+      }}
+    />
+  );
+}
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/utils/constants.ts
+
+export const LIVE_CHART_CAPACITY = 100;
+export const HIT_THRESHOLD = 400
+export const DASHBOARD_REFRESH_TIME = 1000;
+
+
+# ======================================================= #
+# /home/deathyvoid/HackTheValley/frontend/src/utils/helpers.ts
+
+import { HIT_THRESHOLD } from "./constants";
+
+interface DataPoint {
+    timestamp: string;
+    pressure_l: number;
+    pressure_r: number;
+    pressure_b: number;
+    pressure_t: number;
+    accel_x: number;
+    accel_y: number;
+    accel_z: number;
+  }
+
+export function getNumHits(values: number[]) {
+    let hitCount = 0;
+    let isAboveThreshold = false;
+
+    for (let i = 0; i < values.length; i++) {
+      const currentNumber = values[i];
+
+      if (currentNumber > HIT_THRESHOLD && !isAboveThreshold) {
+        hitCount++;
+        isAboveThreshold = true;
+      } else if (currentNumber <= HIT_THRESHOLD) {
+        isAboveThreshold = false;
+      }
+    }
+    return hitCount
+}
+
+
+export function getValues(sessionData: DataPoint[]) {
+    return sessionData.map(
+        (dataPoint) =>
+          dataPoint.pressure_l +
+          dataPoint.pressure_r +
+          dataPoint.pressure_t +
+          dataPoint.pressure_b
+      )
+}
 
 
 # ======================================================= #
@@ -556,7 +2493,7 @@ import axios from 'axios';
 
 const api = axios.create({
     // Digital Ocean Droplet IP
-    baseURL: "45.55.125.88",
+    baseURL: "http://104.131.48.249:8000/",
 });
 
 export default api;

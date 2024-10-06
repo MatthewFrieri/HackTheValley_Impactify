@@ -6,12 +6,12 @@
     background-color: #f0f0f0;
     backdrop-filter: blur(5px);
     padding: 2rem;
+    border-radius: 20px;
 }
-
-/* Header containing the welcome message and the new session button */
-.headerBox {
+  
+  .headerBox {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
-}
+  }

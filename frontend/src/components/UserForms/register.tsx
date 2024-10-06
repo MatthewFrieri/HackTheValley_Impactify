@@ -192,7 +192,7 @@ const Register: React.FC = () => {
             <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{ mt: 2 }}
             >
@@ -207,7 +207,7 @@ const Register: React.FC = () => {
 
             <Typography variant="body2" sx={{ mt: 2 }}>
                 Already have an account?{' '}
-                <Button color="primary" onClick={() => navigate('/login')}>
+                <Button color="success" onClick={() => navigate('/login')}>
                     Log In
                 </Button>
             </Typography>

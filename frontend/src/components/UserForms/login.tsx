@@ -107,7 +107,7 @@ const Login: React.FC = () => {
             <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{ mt: 2 }}
             >
@@ -122,7 +122,7 @@ const Login: React.FC = () => {
 
             <Typography variant="body2" sx={{ mt: 2 }}>
                 Don't have an account?{' '}
-                <Button color="primary" onClick={() => navigate('/register')}>
+                <Button color="success" onClick={() => navigate('/register')}>
                     Register
                 </Button>
             </Typography>            
