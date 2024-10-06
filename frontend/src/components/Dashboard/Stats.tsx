@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
 import { getNumHits, getValues } from "../../utils/helpers";
+import { Box, Card, Typography } from "@mui/material";
+// import "./stats.css";
 
 interface LiveChartProps {
   sessionId: string;
@@ -56,7 +58,8 @@ export default function NumHits({ sessionId }: LiveChartProps) {
     setNumHits(getNumHits(values));
 
     // Calculate biggestHit
-    setBiggestHit(Math.round(Math.max(...values)));
+    const maxHit = Math.max(0, ...values);
+    setBiggestHit(Math.round(maxHit));
 
     // Calculate vulnerableSide
     const leftDamage: [number, string] = [
@@ -75,7 +78,7 @@ export default function NumHits({ sessionId }: LiveChartProps) {
       sessionData
         .map((dataPoint) => dataPoint.pressure_t)
         .reduce((a, b) => a + b, 0),
-      "Top",
+      "Front",
     ];
     const backDamage: [number, string] = [
       sessionData
@@ -98,18 +101,26 @@ export default function NumHits({ sessionId }: LiveChartProps) {
 
   return (
     <>
-      <div>
-        <p># hits taken:</p>
-        <h1>{numHits}</h1>
-      </div>
-      <div>
-        <p>biggest hit:</p>
-        <h1>{biggestHit}</h1>
-      </div>
-      <div>
-        <p>most vulnerable</p>
-        <h1>{mostVulnerable}</h1>
-      </div>
+      <Box display={"flex"} justifyContent={"space-between"}>
+        <Card sx={{ width: 300, height: 200, pt: 5, boxShadow: 5 }}>
+          <Typography variant="h1" fontWeight={"bold"}>
+            {numHits}
+          </Typography>
+          <Typography variant="h5">Hits Taken</Typography>
+        </Card>
+        <Card sx={{ width: 300, height: 200, pt: 5, boxShadow: 5 }}>
+          <Typography variant="h1" fontWeight={"bold"}>
+            {biggestHit}g
+          </Typography>
+          <Typography variant="h5">Peak Impact</Typography>
+        </Card>
+        <Card sx={{ width: 300, height: 200, pt: 5, boxShadow: 5 }}>
+          <Typography variant="h1" fontWeight={"bold"}>
+            {mostVulnerable}
+          </Typography>
+          <Typography variant="h5">Side is Most Vulnerable</Typography>
+        </Card>
+      </Box>
     </>
   );
 }
