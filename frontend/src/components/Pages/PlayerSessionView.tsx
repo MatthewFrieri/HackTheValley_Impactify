@@ -30,7 +30,7 @@ const PlayerSessionView: React.FC<PlayerSessionViewProps> = ({ userId, allowNewS
     // If there are sessions, reverse the list so most recent is first
     response.data.data.reverse();
     // Set the state to the session IDs
-    setSessions(response.data || []);
+    setSessions(response.data.data || []);
     // Can only make a session if there are no active sessions
     if (sessions.length === 0) {
         // Can make a session if there are no sessions
@@ -38,7 +38,7 @@ const PlayerSessionView: React.FC<PlayerSessionViewProps> = ({ userId, allowNewS
     }
     else {
         // Can make a session if the last session has ended
-        setCanMakeSession(response.data[0].time_end !== null);
+        setCanMakeSession(response.data.data[0].time_end !== null);
     }
     // Stop loading
     setLoading(false);
