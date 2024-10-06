@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
-import { HIT_THRESHOLD } from "../../utils/constants";
+import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
+import { getNumHits, getValues } from "../../utils/helpers";
 
 interface LiveChartProps {
   sessionId: string;
@@ -41,7 +42,7 @@ export default function NumHits({ sessionId }: LiveChartProps) {
     // Function that triggers every second
     const interval = setInterval(() => {
       calculateStats();
-    }, 1000);
+    }, DASHBOARD_REFRESH_TIME);
 
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
@@ -49,29 +50,10 @@ export default function NumHits({ sessionId }: LiveChartProps) {
 
   const calculateStats = async () => {
     const sessionData = await FetchSessionData(sessionId);
-    const values = sessionData.map(
-      (dataPoint) =>
-        dataPoint.pressure_l +
-        dataPoint.pressure_r +
-        dataPoint.pressure_t +
-        dataPoint.pressure_b
-    ); // SAME FORMULA AS LIVE CHART
+    const values = getValues(sessionData);
 
     // Calculate numHits
-    let hitCount = 0;
-    let isAboveThreshold = false;
-
-    for (let i = 0; i < values.length; i++) {
-      const currentNumber = values[i];
-
-      if (currentNumber > HIT_THRESHOLD && !isAboveThreshold) {
-        hitCount++;
-        isAboveThreshold = true;
-      } else if (currentNumber <= HIT_THRESHOLD) {
-        isAboveThreshold = false;
-      }
-    }
-    setNumHits(hitCount);
+    setNumHits(getNumHits(values));
 
     // Calculate biggestHit
     setBiggestHit(Math.round(Math.max(...values)));

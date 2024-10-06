@@ -2,7 +2,11 @@ import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
-import { LIVE_CHART_CAPACITY } from "../../utils/constants";
+import {
+  DASHBOARD_REFRESH_TIME,
+  LIVE_CHART_CAPACITY,
+} from "../../utils/constants";
+import { getValues } from "../../utils/helpers";
 
 interface LiveChartProps {
   sessionId: string;
@@ -28,15 +32,8 @@ async function FetchSessionData(sessionId: string) {
     });
 
     // Return the data received from the API
-    const values = response.data.map(
-      (dataPoint) =>
-        dataPoint.pressure_l +
-        dataPoint.pressure_r +
-        dataPoint.pressure_t +
-        dataPoint.pressure_b
-    );
+    const values = getValues(response.data);
 
-    //   return response.data;
     return values;
   } catch (error) {
     console.error("Error fetching session data:", error);
@@ -66,7 +63,7 @@ export default function LiveChart({ sessionId }: LiveChartProps) {
     // Function that triggers every second
     const interval = setInterval(() => {
       handleAddEntries();
-    }, 1000);
+    }, DASHBOARD_REFRESH_TIME);
 
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
