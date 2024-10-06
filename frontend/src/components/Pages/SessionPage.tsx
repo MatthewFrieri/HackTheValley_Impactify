@@ -35,6 +35,7 @@ const SessionPage: React.FC = () => {
     if (isLive) {
       setIsLiveSession(Boolean(isLive));
     }
+    console.log(isLive)
   }, [location.search]);
 
   return (

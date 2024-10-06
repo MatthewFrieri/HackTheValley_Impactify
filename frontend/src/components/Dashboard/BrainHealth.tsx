@@ -5,6 +5,7 @@ import { Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
 import { getNumHits, getValues } from "../../utils/helpers";
 import Insights from "./Insights";
+import { Box, Grid2, Typography } from "@mui/material";
 
 interface LiveChartProps {
   sessionId: string;
@@ -77,23 +78,50 @@ export default function BrainHealth({ sessionId }: LiveChartProps) {
 
   return (
     <>
+      <Typography variant="h4" gutterBottom textAlign={"left"}>
+        Your Brain Health ✔
+      </Typography>
+      <Typography variant="subtitle1" color="textSecondary" gutterBottom textAlign={"left"}>
+        Monitor your brain health in real-time to ensure you're playing safely.
+      </Typography>
       <button onClick={SendText}>Send text</button>
-      <h1>Health: {health}</h1>
-      <Doughnut
-        data={{
-          labels: ["", ""],
-          datasets: [
-            {
-              data: [1 - health, health],
-              backgroundColor: ["red", "green"],
-              borderColor: ["black", "black"],
-              borderWidth: 1,
-            },
-          ],
-        }}
-      />
-      <h1>Insights:</h1>
-      <Insights health={health} />
+
+      <Grid2 container>
+        <Box sx={{ width: '40%' }}>
+          <Doughnut
+            data={{
+              labels: ["Damage Taken", "Brain Health"],
+              datasets: [
+                {
+                  data: [(1 - health) * 100.0, health * 100.0],
+                  backgroundColor: ["red", "green"],
+                  borderColor: ["black", "black"],
+                  borderWidth: 1,
+                },
+              ],
+            }}
+            options={{
+              maintainAspectRatio: true,
+              responsive: true,
+              aspectRatio: 1,
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: function (context) {
+                      const label = context.label || '';
+                      const value = context.raw as number || 0;
+                      return `${label}: ${value.toFixed(2)}%`;
+                    },
+                  },
+                },
+              },
+            }}
+          />
+        </Box>
+        <Box sx={{ width: '60%' }}>
+          <Insights health={health} />
+        </Box>
+      </Grid2>
     </>
   );
 }

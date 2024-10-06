@@ -110,6 +110,12 @@ class SessionDataView(APIView):
                 accel_z = item['acceleration']['z']
                 # Get the most recent session ID from the UserSession table by primary key
                 session_id = UserSession.objects.latest('id').session_id
+                # Check that this session has not ended
+                if session_id.time_end is not None:
+                    # Debug message
+                    print("All sessions have ended")
+                    # Return an error response
+                    return formattedResponse('Error', 'No active session found', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 # Insert the data into the SessionData table
                 session_data = SessionData.objects.create(
                     session_id=session_id,
@@ -315,7 +321,7 @@ class SendSmsView(APIView):
             # Replace the values below with your Twilio number and the recipient's number
             to_number = '+14169482842'   # The phone number you're sending the SMS to
             from_number = '+17097973306' # Your Twilio phone number
-            message_body = f"Hello {coach.coach_id.username}! Your player {user.username} is in critical condition. He needs to seek medical attention immediately."
+            message_body = f"⚠️⚠️ IMPORTANT ⚠️⚠️ Hello {coach.coach_id.username}, your player {user.username} is in critical condition. They need to seek medical attention immediately❗"
             # Call the function to send the SMS
             client.messages.create(body=message_body, from_=from_number, to=to_number)
             # Send a success response
