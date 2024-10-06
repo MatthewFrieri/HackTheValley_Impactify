@@ -32,6 +32,8 @@ class LoginView(APIView):
                 'user_type': user_type
             })
         else:
+            # Print errors
+            print(request)
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class RegisterView(APIView):
@@ -42,6 +44,7 @@ class RegisterView(APIView):
         if serializer.is_valid():
             # Create the user if valid
             user = serializer.save()
+            print(user)
             # Return a success response
             return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
         else:
@@ -222,6 +225,8 @@ class UserViewAll(APIView):
         users = users.exclude(is_superuser=True)
         # Exclude the current user
         users = users.exclude(id=user_id)
+        # Exlude the coaches
+        users = users.exclude(profile__user_type='coach')
         # Serialize the users
         serializer = UserSerializer(users, many=True)
         # Return the serialized users

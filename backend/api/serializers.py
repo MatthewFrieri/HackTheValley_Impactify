@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'date_joined', 'last_login', 'user_type']
+        fields = ['id', 'username', 'email', 'password', 'user_type', 'date_joined', 'last_login' ]
         extra_kwargs = {
             'password': {'write_only': True},
             'date_joined': {'read_only': True},
@@ -19,16 +19,12 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Remove the nested user_type data
         user_type = validated_data.pop('profile', {}).get('user_type', 'player') 
-
         # Hash the password before saving
         validated_data['password'] = make_password(validated_data['password'])  
-
         # Create the User object
-        user = User.objects.create_user(**validated_data)  
-
+        user = super(UserSerializer, self).create(validated_data)
         # Create the Profile object
         Profile.objects.create(user=user, user_type=user_type)
-
         return user
 
 
