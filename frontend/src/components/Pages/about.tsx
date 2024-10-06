@@ -23,7 +23,7 @@ const AboutPage: React.FC = () => {
             fontSize: { xs: "2.5rem", md: "3.5rem" },
           }}
         >
-          About NULL
+          About Impactify
         </Typography>
         <Typography
           variant="h6"
@@ -72,7 +72,7 @@ const AboutPage: React.FC = () => {
               color: "#444",
             }}
           >
-            our motivation is driven by the alarming risks of brain injuries in
+            Our motivation is driven by the alarming risks of brain injuries in
             physical sports like boxing, football, and hockey. Studies show that{" "}
             <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10597432/">
               87%
