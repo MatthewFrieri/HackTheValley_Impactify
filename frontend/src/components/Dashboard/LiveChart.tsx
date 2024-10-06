@@ -1,5 +1,7 @@
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
+import zoomPlugin from "chartjs-plugin-zoom";
+import { Chart as ChartJS } from "chart.js";
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import {
@@ -7,6 +9,8 @@ import {
   LIVE_CHART_CAPACITY,
 } from "../../utils/constants";
 import { getValues } from "../../utils/helpers";
+
+ChartJS.register(zoomPlugin);
 
 interface LiveChartProps {
   sessionId: string;
@@ -76,36 +80,12 @@ export default function LiveChart({ sessionId }: LiveChartProps) {
     return Math.round(maxValue * 1.1); // Set max value to 110% of highest value
   };
 
-  // Chart options including dynamic y-axis scale
-  const options = {
-    scales: {
-      y: {
-        beginAtZero: true,
-        min: 0,
-        max: getMaxValue(), // Set the max dynamically
-      },
-    },
-  };
-
   const addNewEntries = (newValues: number[]) => {
     const currentLength = alsoData.datasets[0].data.length;
     const proposedLength = currentLength + newValues.length;
 
-    const newLabels = Array(
-      proposedLength > LIVE_CHART_CAPACITY ? LIVE_CHART_CAPACITY : currentLength
-    ).fill("");
-
-    let newPoints: number[] = [];
-    if (proposedLength > LIVE_CHART_CAPACITY) {
-      newPoints = [
-        ...alsoData.datasets[0].data.slice(
-          proposedLength - LIVE_CHART_CAPACITY
-        ),
-        ...newValues,
-      ];
-    } else {
-      newPoints = [...alsoData.datasets[0].data, ...newValues];
-    }
+    const newLabels = Array(proposedLength).fill("");
+    const newPoints = [...alsoData.datasets[0].data, ...newValues];
 
     const newData = {
       labels: newLabels,
@@ -124,20 +104,54 @@ export default function LiveChart({ sessionId }: LiveChartProps) {
   const handleAddEntries = async () => {
     const allSessionValues = await FetchSessionData(sessionId);
 
-    const nextValues = [...allSessionValues];
+    const potentialValues = [0, ...allSessionValues];
     const currentValues = alsoData.datasets[0].data;
     const areEqual =
-      JSON.stringify(nextValues) === JSON.stringify(currentValues);
+      JSON.stringify(potentialValues) === JSON.stringify(currentValues);
 
     if (!areEqual) {
+      console.log("not equal");
+      console.log(currentValues);
+      console.log(potentialValues);
+
       const valuesToUse =
         alsoData.datasets[0].data.length == 1
           ? allSessionValues
           : allSessionValues.slice(-10);
 
       addNewEntries(valuesToUse);
+    } else {
+      console.log("equal so dont update");
     }
   };
 
-  return <Line data={data} options={options} />;
+  return (
+    <Line
+      data={data}
+      options={{
+        scales: {
+          y: {
+            beginAtZero: true,
+            min: 0,
+            max: getMaxValue(), // Set the max dynamically
+          },
+        },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: "x",
+              scaleMode: "x",
+            },
+            zoom: {
+              wheel: {
+                enabled: true, // Enable wheel zooming
+              },
+              mode: "x",
+            },
+          },
+        },
+      }}
+    />
+  );
 }
