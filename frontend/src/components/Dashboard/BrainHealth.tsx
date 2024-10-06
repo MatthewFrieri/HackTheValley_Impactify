@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
 import { Doughnut } from "react-chartjs-2";
+import "chart.js/auto";
 import { getNumHits, getValues } from "../../utils/helpers";
 import Insights from "./Insights";
-import { useLocation } from "react-router-dom";
 
 interface LiveChartProps {
   sessionId: string;
