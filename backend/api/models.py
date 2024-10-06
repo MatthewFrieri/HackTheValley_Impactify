@@ -1,8 +1,16 @@
 import uuid
+from enum import Enum
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
+class UserType(Enum):
+    COACH = 'coach'
+    PLAYER = 'player'
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_type = models.CharField(max_length=10, choices=[(tag, tag.value) for tag in UserType], default=UserType.PLAYER)
+
 class Session(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
@@ -26,4 +34,8 @@ class UserSession(models.Model):
     id = models.AutoField(primary_key=True, editable=False)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_sessions')
     session_id = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='user_sessions')
-    
+
+class CoachUser(models.Model):
+    id = models.AutoField(primary_key=True, editable=False)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='player_user')
+    coach_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coach_user')

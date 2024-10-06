@@ -26,9 +26,11 @@ const Login: React.FC = () => {
                 password: password
             });
             if (response.status === 200) {
-                // Store user_id in localStorage
+                // Store user variables in localStorage
                 localStorage.setItem('user_id', response.data.user_id);
+                localStorage.setItem('user_type', response.data.user_type);
                 localStorage.setItem('username', username);
+                // Reset the fields after successful login
                 setUsername('');
                 setPassword('');
                 // Debug message

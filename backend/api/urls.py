@@ -10,5 +10,6 @@ urlpatterns = [
     path('session/all/', views.SessionAllView.as_view(), name='session_all'),
     path('session/start/', views.SessionStartView.as_view(), name='session_start'),
     path('session/end/', views.SessionStopView.as_view(), name='session_end'),
-
+    path('coach/players/', views.CoachUserView.as_view(), name='coach'),
+    path('players/all/', views.UserViewAll.as_view(), name='players'),
 ]

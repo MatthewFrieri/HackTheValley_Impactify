@@ -11,29 +11,41 @@ from django.contrib.auth.decorators import login_required
 
 class LoginView(APIView):
     def post(self, request):
+        # Get the username and password from the request
         username = request.data.get('username')
         password = request.data.get('password')
-
+        # Authenticate the user
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)  # Log the user in
+            # Log the user in
+            login(request, user)
+            # Get the user_type from the Profile model
+            try:
+                user_type = user.profile.user_type
+            # Default value if there is no profile (backcompat)
+            except Profile.DoesNotExist:
+                user_type = 'player'
+            # Return a success response
             return Response({
                 'message': 'Login successful',
-                'user_id': user.id,  # Include user_id in the response
-            }, status=status.HTTP_200_OK)
+                'user_id': user.id,
+                'user_type': user_type
+            })
         else:
             return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class RegisterView(APIView):
     def post(self, request):
+        # Create a new user
         serializer = UserSerializer(data=request.data)
-
         # Validate the input data
         if serializer.is_valid():
             # Create the user if valid
-            serializer.save()
+            user = serializer.save()
+            # Return a success response
             return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
         else:
+            print(serializer.errors)
             # Return validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -68,7 +80,7 @@ class SessionAllView(APIView):
             # Get the user associated with the user ID
             user = User.objects.get(id=user_id)
             # Get a list of sessions for this user
-            session = Session.objects.filter(user_id=user)
+            session = Session.objects.filter(user_id=user).order_by('-time_start')
             # Return a list of session IDs
             return Response([{
                 'session_id': s.id, 
@@ -162,6 +174,14 @@ class SessionStartView(APIView):
             session_name = request.data['session_name']
             # Get the user associated with the user ID
             user = User.objects.get(id=user_id)
+            # Get the most recent session from the UserSession table
+            s = UserSession.objects.filter(user_id=user.id).latest('id')
+            # Check that the session has not ended
+            if s.session_id.time_end is None:
+                # Debug message
+                print("Most recent session has not ended")
+                # Return an error response
+                return Response('Most recent session has not ended', status=500)
             # Create a new session
             session = Session.objects.create(user_id=user, session_name=session_name)
             # Insert the session into the UserSession table
@@ -191,3 +211,68 @@ class SessionStopView(APIView):
         session.save()
         # Return a success response
         return Response('Success')
+
+class UserViewAll(APIView):
+    def get(self, request):
+        # Get the user from the request
+        user_id = request.query_params['user_id']
+        # Get all users
+        users = User.objects.all()
+        # Exclude the superuser
+        users = users.exclude(is_superuser=True)
+        # Exclude the current user
+        users = users.exclude(id=user_id)
+        # Serialize the users
+        serializer = UserSerializer(users, many=True)
+        # Return the serialized users
+        return Response(serializer.data)
+
+class CoachUserView(APIView):
+    def get(self, request):
+        try:
+            # Get the user from the request
+            user_id = request.query_params['user_id']
+            # Get the user associated with the user ID
+            coach = User.objects.get(id=user_id)
+            # Get the players associated with this coach
+            players = CoachUser.objects.filter(coach_id=coach)
+            # Return a list of user IDs and usernames associated with this coach
+            return Response([{'user_id': p.user_id.id, 'username': p.user_id.username} for p in players])
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except User.DoesNotExist:
+            # If there is no user found
+            return Response('Error', status=500)
+        except CoachUser.DoesNotExist:
+            # If there are no players associated with this coach
+            return Response([])
+    
+    def post(self, request):
+        try:
+            print(request.data)
+            # Get the user from the request
+            user_id = request.data['user_id']
+            player_id = request.data['player_id']
+            # Get the coach associated with the user ID
+            coach = User.objects.get(id=user_id)
+            # Get the player associated with the player ID
+            player = User.objects.get(id=player_id)
+            # Create a new coach-player relationship
+            coach_user = CoachUser.objects.create(coach_id=coach, user_id=player)
+            # Save the relationship
+            coach_user.save()
+            # Return a success response
+            return Response('Success')
+        except KeyError:
+            # If there is an invalid key
+            return Response('Error', status=500)
+        except User.DoesNotExist:
+            # If there is no user found
+            return Response('Error', status=500)
+        except CoachUser.DoesNotExist:
+            # If there is no coach found
+            return Response('Error', status=500)
+        except User.DoesNotExist:
+            # If there is no user found
+            return Response('Error', status=500)

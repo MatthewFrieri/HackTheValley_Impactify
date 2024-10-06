@@ -1,6 +1,6 @@
 // components/Layout.tsx
 import React from 'react';
-import { Box, Toolbar } from '@mui/material';
+import { Box } from '@mui/material';
 import Sidebar from './SideBar/sidebar';
 
 interface LayoutProps {
@@ -15,7 +15,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 component="main"
                 sx={{ flexGrow: 1, p: 3 }}
             >
-                <Toolbar />
                 {children}
             </Box>
         </Box>

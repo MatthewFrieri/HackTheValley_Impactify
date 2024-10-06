@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import FormControl from '@mui/material/FormControl';
-import { Input, InputLabel, Button, Box, Typography } from "@mui/material";
+import { Input, InputLabel, Button, Box, Typography, Select, MenuItem } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
@@ -15,6 +15,7 @@ const Register: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [userType, setUserType] = useState('player');
     const navigate = useNavigate();
     
     const handleTogglePasswordVisibility = () => {
@@ -38,7 +39,8 @@ const Register: React.FC = () => {
             const response = await api.post('/users/register/', {
                 username,
                 email,
-                password
+                password,
+                user_type: userType,
             });
             if (response.status === 201) {
                 // Reset the fields after successful registration
@@ -132,6 +134,20 @@ const Register: React.FC = () => {
                         </InputAdornment>
                     }
                 />
+            </FormControl>
+
+            <FormControl fullWidth>
+                <InputLabel htmlFor="user-type" >I am signing up as a:</InputLabel>
+                <Select
+                    label={'I am signing up as a:'}
+                    id="user-type"
+                    value={userType}
+                    onChange={(e) => setUserType(e.target.value)}
+                    sx={{ height: 40 }}
+                >
+                    <MenuItem value="player">Player</MenuItem>
+                    <MenuItem value="coach">Coach</MenuItem>
+                </Select>
             </FormControl>
 
             {error && (
