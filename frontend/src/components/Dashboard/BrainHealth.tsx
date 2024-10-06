@@ -31,6 +31,8 @@ async function FetchSessionData(sessionId: string) {
       params: { session_id: sessionId },
     });
 
+    console.log(response.data);
+
     return response.data.data as DataPoint[];
   } catch (error) {
     console.error("Error fetching session data:", error);
@@ -40,6 +42,24 @@ async function FetchSessionData(sessionId: string) {
 
 export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
   const [health, setHealth] = useState(1);
+
+  useEffect(() => {
+    console.log("health changed", health);
+
+    if (health <= 0) {
+      const alreadySentText = localStorage.getItem("sent_text");
+
+      if (alreadySentText) {
+        if (!Boolean(alreadySentText)) {
+          SendText();
+          localStorage.setItem("sent_text", "true");
+        }
+      } else {
+        SendText();
+        localStorage.setItem("sent_text", "true");
+      }
+    }
+  }, [health]);
 
   async function SendText() {
     console.log("sending text");
@@ -86,13 +106,17 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
       <Typography variant="h4" gutterBottom textAlign={"left"}>
         Your Brain Health ✔
       </Typography>
-      <Typography variant="subtitle1" color="textSecondary" gutterBottom textAlign={"left"}>
+      <Typography
+        variant="subtitle1"
+        color="textSecondary"
+        gutterBottom
+        textAlign={"left"}
+      >
         Monitor your brain health in real-time to ensure you're playing safely.
       </Typography>
-      <button onClick={SendText}>Send text</button>
 
       <Grid2 container>
-        <Box sx={{ width: '40%' }}>
+        <Box sx={{ width: "40%" }}>
           <Doughnut
             data={{
               labels: ["Damage Taken", "Brain Health"],
@@ -113,8 +137,8 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
                 tooltip: {
                   callbacks: {
                     label: function (context) {
-                      const label = context.label || '';
-                      const value = context.raw as number || 0;
+                      const label = context.label || "";
+                      const value = (context.raw as number) || 0;
                       return `${label}: ${value.toFixed(2)}%`;
                     },
                   },
@@ -123,7 +147,7 @@ export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
             }}
           />
         </Box>
-        <Box sx={{ width: '60%' }}>
+        <Box sx={{ width: "60%" }}>
           <Insights health={health} />
         </Box>
       </Grid2>

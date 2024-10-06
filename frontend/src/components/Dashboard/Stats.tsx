@@ -104,7 +104,11 @@ export default function NumHits({ sessionId, isLive }: LiveChartProps) {
 
   return (
     <>
-      <Box display={"flex"} justifyContent={"space-between"}>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        sx={{ marginTop: 8, marginBottom: 8 }}
+      >
         <Card sx={{ width: 300, height: 200, pt: 5, boxShadow: 5 }}>
           <Typography variant="h1" fontWeight={"bold"}>
             {numHits}
@@ -113,7 +117,10 @@ export default function NumHits({ sessionId, isLive }: LiveChartProps) {
         </Card>
         <Card sx={{ width: 300, height: 200, pt: 5, boxShadow: 5 }}>
           <Typography variant="h1" fontWeight={"bold"}>
-            {biggestHit}g
+            {biggestHit > 999
+              ? `${Math.round(biggestHit / 1000)}k`
+              : biggestHit}
+            g
           </Typography>
           <Typography variant="h5">Peak Impact</Typography>
         </Card>

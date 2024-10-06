@@ -51,7 +51,7 @@ const initialData = {
   labels: [""],
   datasets: [
     {
-      label: "My dataset",
+      label: "Impact",
       data: [0],
       fill: true,
       backgroundColor: "rgba(75,192,192,0.2)",
@@ -114,10 +114,6 @@ export default function LiveChart({ sessionId, isLive }: LiveChartProps) {
       JSON.stringify(potentialValues) === JSON.stringify(currentValues);
 
     if (!areEqual) {
-      console.log("not equal");
-      console.log(currentValues);
-      console.log(potentialValues);
-
       const valuesToUse =
         alsoData.datasets[0].data.length == 1
           ? allSessionValues
@@ -125,7 +121,7 @@ export default function LiveChart({ sessionId, isLive }: LiveChartProps) {
 
       addNewEntries(valuesToUse);
     } else {
-      console.log("equal so dont update");
+      // do nothing
     }
   };
 

@@ -28,11 +28,13 @@ const SessionPage: React.FC = () => {
     try {
       const url = new URL(`/users/session/all/`, window.location.origin);
       // Append the session ID to the URL
-      url.searchParams.append('user_id', userId);
+      url.searchParams.append("user_id", userId);
       // Navigate to the new URL
       const response = await api.get(url.pathname + url.search);
       // Find the session with the matching ID
-      const session = response.data.data.find((session: any) => session.session_id === sessionId);
+      const session = response.data.data.find(
+        (session: any) => session.session_id === sessionId
+      );
       // Set the session name
       setSessionName(session.session_name);
     } catch (error: any) {
@@ -47,7 +49,7 @@ const SessionPage: React.FC = () => {
     setIsLiveSession(false);
     // Fetch the session details
     fetchSessionDetails();
-  }
+  };
 
   useEffect(() => {
     // Get the session details on mount
@@ -62,17 +64,20 @@ const SessionPage: React.FC = () => {
     <Box className={styles.sessionBox}>
       <Box className={styles.headerBox}>
         <Typography variant="h6" gutterBottom>
-          <Button variant="text" onClick={() => navigate(-1)} size="small" sx={{ ml: "auto" }}>
+          <Button
+            variant="text"
+            onClick={() => navigate(-1)}
+            size="small"
+            sx={{ ml: "auto" }}
+          >
             <ArrowBackIcon sx={{ color: "green" }} />
           </Button>
           {isLiveSession ? "🔴" : "🟢"} {sessionName}
         </Typography>
-        {
-          isLiveSession && <StopSession onStopSession={stopSession} />
-        }
+        {isLiveSession && <StopSession onStopSession={stopSession} />}
       </Box>
-      <Typography variant="subtitle1" gutterBottom textAlign={"left"}>
-        View your impact over time this session.
+      <Typography variant="h3" gutterBottom textAlign={"left"}>
+        <strong>Live Impact</strong>
       </Typography>
       <LiveChart sessionId={sessionId} isLive={isLiveSession} />
       <Stats sessionId={sessionId} isLive={isLiveSession} />
