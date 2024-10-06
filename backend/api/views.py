@@ -300,18 +300,12 @@ class CoachUserView(APIView):
 class SendSmsView(APIView):
     def get(self, request):
         try:
-            print(request.data)
+            print(request.query_params)
             # Get the user ID from the query params
             user_id = request.query_params['user_id']
             # Get the user associated with the user ID
             user = User.objects.get(id=user_id)
-            # Get the user's phone number
-            phone_number = user.profile.phone_number
-            # Phone number could be null or empty
-            if phone_number == None or phone_number == '':
-                # Return an error response
-                return formattedResponse('Error', 'No phone number associated with this user', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-          
+
             # --------- Send the SMS ---------
 
             # Your Twilio account SID and Auth Token (found in the Twilio dashboard)
@@ -328,16 +322,18 @@ class SendSmsView(APIView):
                     to=to_number
                 )
             
-            coach = CoachUser.objects.get(user_id=user_id)
+            try:
+                coach = CoachUser.objects.get(user_id=user_id)
 
-            # Replace the values below with your Twilio number and the recipient's number
-            to_number = '+14169482842'   # The phone number you're sending the SMS to
-            from_number = '+17097973306' # Your Twilio phone number
-            message_body = f"Hello {coach.coach_id.username}! Your player {user.username} is in critical condition. He needs to seek medical attention immediately."
+                # Replace the values below with your Twilio number and the recipient's number
+                to_number = '+14169482842'   # The phone number you're sending the SMS to
+                from_number = '+17097973306' # Your Twilio phone number
+                message_body = f"Hello {coach.coach_id.username}! Your player {user.username} is in critical condition. He needs to seek medical attention immediately."
 
-            # Call the function to send the SMS
-            send_sms(to_number, from_number, message_body)
-                        
+                # Call the function to send the SMS
+                send_sms(to_number, from_number, message_body)
+            except CoachUser.DoesNotExist:
+                print("No coach found for this player")
 
         except KeyError:
             # If there is an invalid key

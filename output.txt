@@ -427,7 +427,7 @@ import Button from '@mui/material/Button';
 
 const NewSession: React.FC = () => {
     return (
-        <Button variant="contained" color="primary">
+        <Button variant="contained" color="success">
             New Session +
         </Button>
     );
@@ -535,7 +535,7 @@ const Login: React.FC = () => {
             <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{ mt: 2 }}
             >
@@ -966,7 +966,7 @@ const NewSession: React.FC<NewSessionProps> = ({ onNewSession }) => {
 
     return (
         <>
-            <Button variant="contained" color="primary" onClick={handleOpen}>
+            <Button variant="contained" color="success" onClick={handleOpen}>
                 New Session +
             </Button>
             <CreateNewSession open={open} handleClose={handleClose} onNewSession={onNewSession} />
@@ -1149,7 +1149,7 @@ const CreateNewSession: React.FC<CreateNewSessionProps> = ({ open, handleClose, 
                 />
                 <br />
                 <br />
-                <Button variant="contained" color="primary" onClick={handleCreateSession}>
+                <Button variant="contained" color="success" onClick={handleCreateSession}>
                     Create Session
                 </Button>
             </Box>
@@ -1260,7 +1260,7 @@ const Login: React.FC = () => {
             <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{ mt: 2 }}
             >
@@ -1427,7 +1427,7 @@ const Register: React.FC = () => {
             <Button
                 type="submit"
                 variant="contained"
-                color="primary"
+                color="success"
                 fullWidth
                 sx={{ mt: 2 }}
             >
@@ -1557,7 +1557,7 @@ const LandingPage: React.FC = () => {
         <Box className={styles.mainBox}>
             <Box className={styles.headerBox}>
                 <Typography variant="h4">Hello {localStorage.getItem('username')} 👋</Typography>
-                <Button variant="contained" color="primary" onClick={getUserSessions}>
+                <Button variant="contained" color="success" onClick={getUserSessions}>
                     Refresh
                 </Button>
                 { (recentSession === null || (recentSession && recentSession.time_end !== null)) && <NewSession onNewSession={getUserSessions} /> }
