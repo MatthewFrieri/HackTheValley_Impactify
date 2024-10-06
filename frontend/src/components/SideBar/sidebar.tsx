@@ -47,7 +47,7 @@ const Sidebar: React.FC = () => {
             const responseS = await api.get(`/users/session/all`, {
                 params: { user_id: userId },
             });
-            const sessionData = responseS.data.reverse();
+            const sessionData = responseS.data.data.reverse();
 
             // Transform sessions to have consistent property names
             const transformedSessions = sessionData.map((session: any) => ({
@@ -65,7 +65,11 @@ const Sidebar: React.FC = () => {
     };
 
     const handleLogout = () => {
+        // Remove user data from local storage
         localStorage.removeItem('user_id');
+        localStorage.removeItem('username');
+        localStorage.removeItem('user_type');
+        // Redirect to login page
         navigate('/login');
     };
 

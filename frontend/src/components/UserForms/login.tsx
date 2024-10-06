@@ -6,13 +6,17 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { useSnackbar } from 'notistack';
 
 const Login: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+    
     const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
+
     const handleTogglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
@@ -27,20 +31,29 @@ const Login: React.FC = () => {
             });
             if (response.status === 200) {
                 // Store user variables in localStorage
-                localStorage.setItem('user_id', response.data.user_id);
-                localStorage.setItem('user_type', response.data.user_type);
+                localStorage.setItem('user_id', response.data.data.user_id);
+                localStorage.setItem('user_type', response.data.data.user_type);
                 localStorage.setItem('username', username);
                 // Reset the fields after successful login
                 setUsername('');
                 setPassword('');
                 // Debug message
-                console.log('Login successful:', response.data);
+                enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
                 // Redirect to dashboard
                 navigate('/dashboard');
             }
         } catch (error: any) {
-            console.error('Login error:', error.response?.data || error.message);
-            setError(error.response?.data?.message || 'An error occurred during login');
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
         }
     };
 

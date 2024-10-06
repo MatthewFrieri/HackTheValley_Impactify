@@ -22,11 +22,11 @@ interface DataPoint {
 async function FetchSessionData(sessionId: string) {
   try {
     // Make the API call to fetch session stats
-    const response = await api.get<DataPoint[]>("/users/session/data", {
+    const response = await api.get("/users/session/data", {
       params: { session_id: sessionId },
     });
 
-    return response.data;
+    return response.data.data as DataPoint[];
   } catch (error) {
     console.error("Error fetching session data:", error);
     return []; // Handle error case appropriately

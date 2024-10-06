@@ -9,70 +9,59 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
+def formattedResponse(status, message, data = None, code = status.HTTP_200_OK):
+    # Add the status, message and code
+    res = { 'status': status, 'message': message }
+    # If there is data, add it to the response
+    if data is not None:
+        res['data'] = data
+    # Return the response
+    return Response(res, status=code)
+
 class LoginView(APIView):
     def post(self, request):
-        # Get the username and password from the request
-        username = request.data.get('username')
-        password = request.data.get('password')
-        # Authenticate the user
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            # Log the user in
-            login(request, user)
-            # Get the user_type from the Profile model
-            try:
-                user_type = user.profile.user_type
-            # Default value if there is no profile (backcompat)
-            except Profile.DoesNotExist:
-                user_type = 'player'
-            # Return a success response
-            return Response({
-                'message': 'Login successful',
-                'user_id': user.id,
-                'user_type': user_type
-            })
-        else:
-            # Print errors
-            print(request)
-            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            # Get the username and password from the request
+            username = request.data['username']
+            password = request.data['password']
+            # Authenticate the user
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                # Log the user in
+                login(request, user)
+                # Get the user_type from the Profile model
+                try:
+                    user_type = user.profile.user_type
+                # Default value if there is no profile (backcompat)
+                except Profile.DoesNotExist:
+                    user_type = 'player'
+                # Return a success response
+                return formattedResponse('Success', 'Login successful', { 'user_id': user.id, 'user_type': user_type })
+            else:
+                # Return a failure response
+                return formattedResponse('Error', 'Invalid credentials', code=status.HTTP_401_UNAUTHORIZED)
+        except KeyError:
+            # If there is an invalid key
+            return formattedResponse('Error', 'Invalid request', code=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
     def post(self, request):
-        # Create a new user
-        serializer = UserSerializer(data=request.data)
-        # Validate the input data
-        if serializer.is_valid():
-            # Create the user if valid
-            user = serializer.save()
-            print(user)
-            # Return a success response
-            return Response({"message": "User registered successfully."}, status=status.HTTP_201_CREATED)
-        else:
-            print(serializer.errors)
-            # Return validation errors
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class SessionView(APIView):
-    def get(self, request):
         try:
-            print(request.data)
-            # Get the user ID from the query params
-            user_id = request.query_params['user_id']
-            # Get the most recent session for this user
-            s = UserSession.objects.filter(user_id=user_id).latest('id')
-            # Return the session ID
-            return Response({
-                'session_id': s.session_id.id, 
-                'session_name': s.session_id.session_name,
-                'time_start': s.session_id.time_start,
-                'time_end': s.session_id.time_end
-            })
-        except KeyError:
+            # Create a new user
+            serializer = UserSerializer(data=request.data)
+            # Validate the input data
+            if serializer.is_valid():
+                # Create the user if valid
+                serializer.save()
+                # Return a success response
+                return formattedResponse('Success', 'User registered successfully', code=status.HTTP_201_CREATED)
+            else:
+                print(serializer.errors)
+                # Return validation errors
+                return formattedResponse('Error', 'Invalid input', serializer.errors, code=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
             # If there is an invalid key
-            return Response('Error', status=500)
-        except UserSession.DoesNotExist:
-            # If there is no session found
-            return Response({'session_id': None})
+            return formattedResponse('Error', 'Invalid request', e.__repr__, code=status.HTTP_400_BAD_REQUEST)
 
 class SessionAllView(APIView):
     def get(self, request):
@@ -85,18 +74,18 @@ class SessionAllView(APIView):
             # Get a list of sessions for this user
             session = Session.objects.filter(user_id=user).order_by('-time_start')
             # Return a list of session IDs
-            return Response([{
+            return formattedResponse('Success', 'Sessions retrieved successfully', [{
                 'session_id': s.id, 
                 'session_name': s.session_name,
                 'time_start': s.time_start,
                 'time_end': s.time_end
             } for s in session])
-        except KeyError:
+        except KeyError as e:
             # If there is an invalid key
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'Invalid request', e.__repr__, code=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             # If there is no user found
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'User not found', code=status.HTTP_404_NOT_FOUND)
 
 class SessionDataView(APIView):
     def post(self, request):
@@ -132,15 +121,16 @@ class SessionDataView(APIView):
                 )
                 # Save the data
                 session_data.save()
+                # Send success response
+                return formattedResponse('Success', 'Data saved successfully')
         except KeyError:
+            print("Key error")
             # If there is an invalid key
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'Key error', code=status.HTTP_400_BAD_REQUEST)
         except UserSession.DoesNotExist:
             print("No active session found")
             # If there is no session started
-            return Response('No active session found', status=500)
-        # Return a success response
-        return Response('Success')
+            return formattedResponse('Error', 'No active session found', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get(self, request):
         try:
@@ -150,7 +140,7 @@ class SessionDataView(APIView):
             # Get the session data for this session
             session_data = SessionData.objects.filter(session_id=session_id)
             # Return the session data
-            return Response([
+            return formattedResponse('Success', 'Session data retrieved successfully', [
             {
                 'timestamp': d.timestamp,
                 'pressure_l': d.pressure_l,
@@ -163,10 +153,10 @@ class SessionDataView(APIView):
             } for d in session_data])
         except KeyError:
             # If there is an invalid key
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'Session ID not in query params', code=status.HTTP_400_BAD_REQUEST)
         except UserSession.DoesNotExist:
             # If there is no session found
-            return Response('No active session found', status=500)
+            return formattedResponse('Error', 'Session not found', code=status.HTTP_404_NOT_FOUND)
 
 class SessionStartView(APIView):
     def post(self, request):
@@ -177,14 +167,18 @@ class SessionStartView(APIView):
             session_name = request.data['session_name']
             # Get the user associated with the user ID
             user = User.objects.get(id=user_id)
-            # Get the most recent session from the UserSession table
-            s = UserSession.objects.filter(user_id=user.id).latest('id')
-            # Check that the session has not ended
-            if s.session_id.time_end is None:
-                # Debug message
-                print("Most recent session has not ended")
-                # Return an error response
-                return Response('Most recent session has not ended', status=500)
+            try:
+                # Get the most recent session from the UserSession table
+                s = UserSession.objects.filter(user_id=user.id).latest('id')
+                # Check that the session has not ended
+                if s.session_id.time_end is None:
+                    # Debug message
+                    print("Most recent session has not ended")
+                    # Return an error response
+                    return formattedResponse('Error', 'Most recent session has not ended', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            except UserSession.DoesNotExist:
+                # This is the first session
+                print("No active session found")
             # Create a new session
             session = Session.objects.create(user_id=user, session_name=session_name)
             # Insert the session into the UserSession table
@@ -193,44 +187,66 @@ class SessionStartView(APIView):
             session.save()
             user_session.save()
             # Return the session id
-            return Response({'session_id': session.id})
+            return formattedResponse('Success', 'Session started successfully', { 'session_id': session.id })
         except KeyError:
             # If there is an invalid key
-            return Response('Error', status=500)
-
+            return formattedResponse('Error', 'Key error, user_id or session_id invalid', code=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            # If there is no user found
+            return formattedResponse('Error', 'User not found', code=status.HTTP_404_NOT_FOUND)
 
 class SessionStopView(APIView):
     def post(self, request):
-        print(request.data)
-        # Get the user from the request
-        user = User.objects.get(id=request.data['user_id'])
-        # Get the most recent session from the UserSession table
-        s = UserSession.objects.filter(user_id=user.id).latest('id')
-        # Get the session from the Session table
-        session = Session.objects.get(id=s.session_id.id)
-        # Update the session end time
-        session.time_end = datetime.now()
-        # Save the session
-        session.save()
-        # Return a success response
-        return Response('Success')
+        try:
+            print(request.data)
+            # Get the user from the request
+            user = User.objects.get(id=request.data['user_id'])
+            # Get the most recent session from the UserSession table
+            s = UserSession.objects.filter(user_id=user.id).latest('id')
+            # Get the session from the Session table
+            session = Session.objects.get(id=s.session_id.id)
+            # Update the session end time
+            session.time_end = datetime.now()
+            # Save the session
+            session.save()
+            # Return a success response
+            return formattedResponse('Success', 'Session ended successfully')
+        except KeyError:
+            # If there is an invalid key
+            return formattedResponse('Error', 'Key error, user_id or session_id invalid', code=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            # If there is no user found
+            return formattedResponse('Error', 'User not found', code=status.HTTP_404_NOT_FOUND)
 
 class UserViewAll(APIView):
     def get(self, request):
-        # Get the user from the request
-        user_id = request.query_params['user_id']
-        # Get all users
-        users = User.objects.all()
-        # Exclude the superuser
-        users = users.exclude(is_superuser=True)
-        # Exclude the current user
-        users = users.exclude(id=user_id)
-        # Exlude the coaches
-        users = users.exclude(profile__user_type='coach')
-        # Serialize the users
-        serializer = UserSerializer(users, many=True)
-        # Return the serialized users
-        return Response(serializer.data)
+        try:
+            # Get the user from the request
+            user_id = request.query_params['user_id']
+            # Get all users
+            users = User.objects.all()
+            # Exclude the superuser
+            users = users.exclude(is_superuser=True)
+            # Exclude the current user
+            users = users.exclude(id=user_id)
+            # Exlude the coaches
+            users = users.exclude(profile__user_type='coach')
+            # Exclude the players that are already associated with this coach
+            try:
+                players = CoachUser.objects.filter(coach_id=user_id)
+                users = users.exclude(id__in=[p.user_id.id for p in players])
+            except CoachUser.DoesNotExist:
+                print("No players found for this coach")
+            # Serialize the users
+            serializer = UserSerializer(users, many=True)
+            # Return the serialized users
+            return formattedResponse('Success', 'Users retrieved successfully', serializer.data)
+        except KeyError:
+            # If there is an invalid key
+            return formattedResponse('Error', 'Key error, user_id invalid', code=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            # If there is no user found
+            return formattedResponse('Error', 'User not found', code=status.HTTP_404_NOT_FOUND)
 
 class CoachUserView(APIView):
     def get(self, request):
@@ -242,16 +258,16 @@ class CoachUserView(APIView):
             # Get the players associated with this coach
             players = CoachUser.objects.filter(coach_id=coach)
             # Return a list of user IDs and usernames associated with this coach
-            return Response([{'user_id': p.user_id.id, 'username': p.user_id.username} for p in players])
+            return formattedResponse('Success', 'Players retrieved successfully', [{ 'user_id': p.user_id.id, 'username': p.user_id.username } for p in players])
         except KeyError:
             # If there is an invalid key
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'Key error, user_id invalid', code=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             # If there is no user found
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'User not found', code=status.HTTP_404_NOT_FOUND)
         except CoachUser.DoesNotExist:
             # If there are no players associated with this coach
-            return Response([])
+            return formattedResponse('Success', 'No players found for this coach', [])
     
     def post(self, request):
         try:
@@ -268,16 +284,37 @@ class CoachUserView(APIView):
             # Save the relationship
             coach_user.save()
             # Return a success response
-            return Response('Success')
+            return formattedResponse('Success', 'Player added successfully')
         except KeyError:
             # If there is an invalid key
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'Key error, user_id or player_id invalid', code=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             # If there is no user found
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'User not found', code=status.HTTP_404_NOT_FOUND)
         except CoachUser.DoesNotExist:
             # If there is no coach found
-            return Response('Error', status=500)
-        except User.DoesNotExist:
-            # If there is no user found
-            return Response('Error', status=500)
+            return formattedResponse('Error', 'Coach not found', code=status.HTTP_404_NOT_FOUND)
+        
+class SendSmsView(APIView):
+    def get(self, request):
+        try:
+            print(request.data)
+            # Get the user ID from the query params
+            user_id = request.query_params['user_id']
+            # Get the user associated with the user ID
+            user = User.objects.get(id=user_id)
+            # Get the user's phone number
+            phone_number = user.profile.phone_number
+            # Phone number could be null or empty
+            if phone_number == None or phone_number == '':
+                # Return an error response
+                return formattedResponse('Error', 'No phone number associated with this user', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Send the SMS
+            # Send the SMS
+            # Send the SMS
+            # Send the SMS
+            # Send the SMS
+            # Send the SMS
+        except KeyError:
+            # If there is an invalid key
+            return formattedResponse('Error', 'Invalid request', code=status.HTTP_400_BAD_REQUEST)

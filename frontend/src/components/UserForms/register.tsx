@@ -6,6 +6,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import api from '../../utils/api'
 import { useNavigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 const Register: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -15,8 +16,11 @@ const Register: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [userType, setUserType] = useState('player');
+
     const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
     
     const handleTogglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -24,6 +28,12 @@ const Register: React.FC = () => {
 
     const handleToggleConfirmPasswordVisibility = () => {
         setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const handlePhoneNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const cleanedNumber = event.target.value.replace(/\D/g, '');
+        const formattedNumber = cleanedNumber.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+        setPhoneNumber(formattedNumber);
     };
 
     const handleRegister = async (e: React.FormEvent) => {
@@ -41,6 +51,7 @@ const Register: React.FC = () => {
                 email,
                 password,
                 user_type: userType,
+                phone_number: phoneNumber,
             });
             if (response.status === 201) {
                 // Reset the fields after successful registration
@@ -49,13 +60,26 @@ const Register: React.FC = () => {
                 setPassword('');
                 setConfirmPassword('');
                 // Debug message
-                console.log('Login successful:', response.data);
-                // Redirect to dashboard
-                navigate('/dashboard');
+                enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
+                // Override local storage
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                localStorage.removeItem('user_type');
+                // Redirect to login page
+                navigate('/login');
             }
         } catch (error: any) {
-            console.error('Registration error:', error.response?.data || error.message);
-            setError(error.response?.data?.message || 'An error occurred during registration');
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
         }
     };
 
@@ -94,6 +118,15 @@ const Register: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                 />
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel htmlFor="phoneNum">Phone Number</InputLabel>
+              <Input
+                id="phoneNum"
+                value={phoneNumber}
+                onChange={handlePhoneNumberChange} 
+              />
             </FormControl>
 
             <FormControl fullWidth>

@@ -6,16 +6,17 @@ import LandingPage from './components/Pages/LandingPage';
 import SessionPage from './components/Pages/SessionPage';
 import About from './components/Pages/about.tsx';
 import Layout from './components/layout.tsx';
+import { SnackbarProvider } from 'notistack';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
-  const userId = localStorage.getItem('user_id');
 
   const RequireAuth = ({ children }: { children: JSX.Element }) => {
-    return userId ? children : <Navigate to="/login" replace />;
+    return localStorage.getItem('user_id') ? children : <Navigate to="/login" replace />;
   };
 
   return (
+    <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
       <Router>
         <Routes>
           {/* Public Routes */}
@@ -61,6 +62,7 @@ function App() {
           />
         </Routes>
       </Router>
+    </SnackbarProvider>
   );
 }
 

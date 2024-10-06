@@ -32,7 +32,7 @@ const CoachSessionView: React.FC<CoachSessionViewProps> = ({ userId }) => {
       // Using the user ID, get all the players that the coach has sessions with
       const response = await api.get(`/users/coach/players/`, { params: { user_id: userId } });;
       // Set the state to the session IDs
-      setPlayers(response.data || []);
+      setPlayers(response.data.data || []);
       // Stop loading
       setLoading(false);
     };

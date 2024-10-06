@@ -2,6 +2,7 @@ import api from '../../utils/api';
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import styles from './AddPlayerModal.module.css';
+import { useSnackbar } from 'notistack';
 
 interface AddPlayerModalProps {
     open: boolean
@@ -16,6 +17,8 @@ interface Player {
 
 const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ open, handleClose, onAddPlayer }) => {
 
+    const { enqueueSnackbar } = useSnackbar();
+
     // Get the userId from localStorage
     const userId = localStorage.getItem('user_id');
 
@@ -28,7 +31,7 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ open, handleClose, onAd
         // Get all the players
         const response = await api.get('/users/players/all/', { params: { user_id: userId } });
         // Set the state to the players
-        setPlayers(response.data || []);
+        setPlayers(response.data.data || []);
         setLoading(false);
     };
 
@@ -45,13 +48,25 @@ const AddPlayerModal: React.FC<AddPlayerModalProps> = ({ open, handleClose, onAd
         }
         try {
             // Add a player to the coach's team
-            await api.post('/users/coach/players/', { user_id: userId, player_id: player });
+            const response = await api.post('/users/coach/players/', { user_id: userId, player_id: player });
+            // Success message
+            enqueueSnackbar(response.data.message, { variant: response.data.status.toLowerCase() });
             // Close the modal on successful addition
             handleClose();
             // Call the onAddPlayer callback to refresh the players
             onAddPlayer();
-        } catch (error) {
-            console.error('Error adding player:', error);
+        } catch (error: any) {
+            if (error.response) {
+                // Server responded with a status other than 200 range
+                enqueueSnackbar(error.response.data.message, { variant: error.response.data.status.toLowerCase() });
+            } else if (error.request) {
+                // Request was made but no response received
+                enqueueSnackbar('No response from server. Please try again later.', { variant: 'error' });
+            } else {
+                // Something else happened while setting up the request
+                enqueueSnackbar('An unexpected error occurred. Please try again.', { variant: 'error' });
+            }
+            console.error('Error stopping session:', error);
         }
     }
 

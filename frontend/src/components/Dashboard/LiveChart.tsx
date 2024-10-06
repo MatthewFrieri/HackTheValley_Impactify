@@ -27,12 +27,12 @@ interface DataPoint {
 async function FetchSessionData(sessionId: string) {
   try {
     // Make the API call to fetch session stats
-    const response = await api.get<DataPoint[]>("/users/session/data", {
+    const response = await api.get("/users/session/data", {
       params: { session_id: sessionId },
     });
 
     // Return the data received from the API
-    const values = getValues(response.data);
+    const values = getValues(response.data.data as DataPoint[]);
 
     return values;
   } catch (error) {

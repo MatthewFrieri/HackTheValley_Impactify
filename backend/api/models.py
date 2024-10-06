@@ -10,6 +10,7 @@ class UserType(Enum):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     user_type = models.CharField(max_length=10, choices=[(tag, tag.value) for tag in UserType], default=UserType.PLAYER)
+    phone_number = models.CharField(max_length=15, blank=True)
 
 class Session(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
