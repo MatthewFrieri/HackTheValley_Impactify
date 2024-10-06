@@ -1,9 +1,9 @@
 // App.tsx
 import './App.css';
-import Login from './components/UserForms/login';
-import Register from './components/UserForms/register';
-import LandingPage from './components/Pages/LandingPage';
-import SessionPage from './components/Pages/SessionPage';
+import Login from './components/UserForms/login.tsx';
+import Register from './components/UserForms/register.tsx';
+import LandingPage from './components/Pages/LandingPage.tsx';
+import SessionPage from './components/Pages/SessionPage.tsx';
 import About from './components/Pages/about.tsx';
 import Layout from './components/layout.tsx';
 import { SnackbarProvider } from 'notistack';

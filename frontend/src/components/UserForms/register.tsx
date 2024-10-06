@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import FormControl from '@mui/material/FormControl';
+import { FormControl } from '@mui/material';
 import { Input, InputLabel, Button, Box, Typography, Select, MenuItem } from "@mui/material";
 import { InputAdornment, IconButton } from "@mui/material";
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import api from '../../utils/api'
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import api from '../../utils/api.tsx'
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 

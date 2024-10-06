@@ -1,7 +1,7 @@
 // components/Layout.tsx
 import React from 'react';
 import { Box } from '@mui/material';
-import Sidebar from './SideBar/sidebar';
+import Sidebar from './SideBar/sidebar.tsx';
 
 interface LayoutProps {
     children: React.ReactNode;

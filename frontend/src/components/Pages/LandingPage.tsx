@@ -1,9 +1,9 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { Refresh } from '@mui/icons-material';
 import styles from "./LandingPage.module.css";
-import PlayerSessionView from "./PlayerSessionView";
-import CoachSessionView from "./CoachSessionView";
+import PlayerSessionView from "./PlayerSessionView.tsx";
+import CoachSessionView from "./CoachSessionView.tsx";
 
 const LandingPage: React.FC = () => {
 
@@ -24,7 +24,7 @@ const LandingPage: React.FC = () => {
         <Typography variant="h6" gutterBottom textAlign={"left"} padding={2}>
           Refresh Sessions:
           <Button variant="text" onClick={refresh} size="small">
-            <RefreshIcon sx={{ color: "green" }} />
+            <Refresh sx={{ color: "green" }} />
           </Button>
         </Typography>
       </Box>

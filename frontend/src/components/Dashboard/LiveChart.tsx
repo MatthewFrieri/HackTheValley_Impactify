@@ -3,11 +3,11 @@ import "chart.js/auto";
 import zoomPlugin from "chartjs-plugin-zoom";
 import { Chart as ChartJS } from "chart.js";
 import { useEffect, useState } from "react";
-import api from "../../utils/api";
-import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
-import { getValues } from "../../utils/helpers";
+import api from "../../utils/api.tsx";
+import { DASHBOARD_REFRESH_TIME } from "../../utils/constants.tsx";
+import { getValues } from "../../utils/helpers.tsx";
 
-ChartJS.register(zoomPlugin);
+ChartJS.register(zoomPlugin.default);
 
 interface LiveChartProps {
   sessionId: string;

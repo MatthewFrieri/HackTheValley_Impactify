@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import api from "../../utils/api";
+import api from "../../utils/api.tsx";
 import {
   DASHBOARD_REFRESH_TIME,
   NUM_HITS_FOR_DEATH,
-} from "../../utils/constants";
+} from "../../utils/constants.tsx";
 import { Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
-import { getNumHits, getValues } from "../../utils/helpers";
-import Insights from "./Insights";
+import { getNumHits, getValues } from "../../utils/helpers.tsx";
+import Insights from "./Insights.tsx";
 import { Box, Grid2, Typography } from "@mui/material";
 
 interface LiveChartProps {

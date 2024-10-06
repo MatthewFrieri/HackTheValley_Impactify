@@ -1,4 +1,4 @@
-import api from '../../utils/api';
+import api from '../../utils/api.tsx';
 import React, { useState } from 'react';
 import { Modal, Box, TextField, Button, Typography } from '@mui/material';
 import styles from './CreateNewSession.module.css';

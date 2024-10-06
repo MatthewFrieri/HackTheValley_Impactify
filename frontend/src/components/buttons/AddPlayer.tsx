@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import AddPlayerModal from '../modals/AddPlayerModal';
+import { Button } from '@mui/material';
+import AddPlayerModal from '../modals/AddPlayerModal.tsx';
 
 interface NewSessionProps {
     onAddPlayer: () => void;

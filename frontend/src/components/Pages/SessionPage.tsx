@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import Stats from "../Dashboard/Stats";
+import Stats from "../Dashboard/Stats.tsx";
 import { Box, Button, Typography } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ArrowBack } from "@mui/icons-material";
 import StopCircle from "@mui/icons-material/StopCircle";
-import api from "../../utils/api";
-import LiveChart from "../Dashboard/LiveChart";
-import BrainHealth from "../Dashboard/BrainHealth";
+import api from "../../utils/api.tsx";
+import LiveChart from "../Dashboard/LiveChart.tsx";
+import BrainHealth from "../Dashboard/BrainHealth.tsx";
 import styles from "./LandingPage.module.css";
 import { useSnackbar } from "notistack";
-import StopSession from "../buttons/StopSession";
+import StopSession from "../buttons/StopSession.tsx";
 
 const SessionPage: React.FC = () => {
   // Get the current location and navigate function from the router
@@ -70,7 +70,7 @@ const SessionPage: React.FC = () => {
             size="small"
             sx={{ ml: "auto" }}
           >
-            <ArrowBackIcon sx={{ color: "green" }} />
+            <ArrowBack sx={{ color: "green" }} />
           </Button>
           {isLiveSession ? "🔴" : "⚪"} {sessionName}
         </Typography>

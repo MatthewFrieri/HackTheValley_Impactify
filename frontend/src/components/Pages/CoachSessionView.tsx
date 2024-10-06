@@ -1,11 +1,11 @@
 import React from "react";
-import api from "../../utils/api";
+import api from "../../utils/api.tsx";
 import { Typography, Stack } from "@mui/material";
-import SessionLink from "../buttons/SessionLink";
-import NewSession from "../buttons/NewSession";
-import StopSession from "../buttons/StopSession";
-import PlayerSessionView from "./PlayerSessionView";
-import AddPlayer from "../buttons/AddPlayer";
+import SessionLink from "../buttons/SessionLink.tsx";
+import NewSession from "../buttons/NewSession.tsx";
+import StopSession from "../buttons/StopSession.tsx";
+import PlayerSessionView from "./PlayerSessionView.tsx";
+import AddPlayer from "../buttons/AddPlayer.tsx";
 
 interface CoachSessionViewProps {
   userId: string;

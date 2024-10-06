@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import Button from '@mui/material/Button';
-import StopCurrentSession from '../modals/StopCurrentSession';
+import { Button } from '@mui/material';
+import StopCurrentSession from '../modals/StopCurrentSession.tsx';
 
 interface StopSessionProps {
     onStopSession: () => void;

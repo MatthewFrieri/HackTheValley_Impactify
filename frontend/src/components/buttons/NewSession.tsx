@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Button from "@mui/material/Button";
-import CreateNewSession from "../modals/CreateNewSession";
+import { Button } from "@mui/material";
+import CreateNewSession from "../modals/CreateNewSession.tsx";
 
 interface NewSessionProps {
   onNewSession: () => void;

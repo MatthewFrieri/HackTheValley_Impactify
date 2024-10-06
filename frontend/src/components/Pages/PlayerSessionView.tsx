@@ -1,9 +1,9 @@
 import React from "react";
-import api from "../../utils/api";
+import api from "../../utils/api.tsx";
 import { Typography, Stack, Grid2 } from "@mui/material";
-import SessionLink from "../buttons/SessionLink";
-import NewSession from "../buttons/NewSession";
-import StopSession from "../buttons/StopSession";
+import SessionLink from "../buttons/SessionLink.tsx";
+import NewSession from "../buttons/NewSession.tsx";
+import StopSession from "../buttons/StopSession.tsx";
 
 interface PlayerSessionViewProps {
     userId: string;
