@@ -9,6 +9,7 @@ import { Box, Grid2, Typography } from "@mui/material";
 
 interface LiveChartProps {
   sessionId: string;
+  isLive?: boolean;
 }
 
 interface DataPoint {
@@ -37,7 +38,7 @@ async function FetchSessionData(sessionId: string) {
   }
 }
 
-export default function BrainHealth({ sessionId }: LiveChartProps) {
+export default function BrainHealth({ sessionId, isLive }: LiveChartProps) {
   const [health, setHealth] = useState(1);
 
   async function SendText() {
@@ -59,9 +60,13 @@ export default function BrainHealth({ sessionId }: LiveChartProps) {
   }
 
   useEffect(() => {
+    // Call first time
+    calculateHealth();
     // Function that triggers every second
     const interval = setInterval(() => {
-      calculateHealth();
+      if (isLive) {
+        calculateHealth();
+      }
     }, DASHBOARD_REFRESH_TIME);
 
     // Cleanup the interval when the component unmounts

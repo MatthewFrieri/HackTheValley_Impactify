@@ -27,8 +27,12 @@ const PlayerSessionView: React.FC<PlayerSessionViewProps> = ({ userId, allowNewS
     // Using the users' ID, get all the sessions they have previously created
     // This will be used to display the previous sessions on the landing page
     const response = await api.get(`/users/session/all`, { params: { user_id: userId } });
-    // If there are sessions, reverse the list so most recent is first
-    response.data.data.reverse();
+    // If there is no response data, return
+    if (!response.data) return;
+    // If there are sessions, sort the list by the start time
+    response.data.data.sort((a: Session, b: Session) => {
+        return new Date(b.time_start).getTime() - new Date(a.time_start).getTime();
+    });
     // Set the state to the session IDs
     setSessions(response.data.data || []);
     // Can only make a session if there are no active sessions

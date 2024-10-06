@@ -14,6 +14,7 @@ ChartJS.register(zoomPlugin);
 
 interface LiveChartProps {
   sessionId: string;
+  isLive?: boolean;
 }
 
 interface DataPoint {
@@ -31,7 +32,7 @@ interface DataPoint {
 async function FetchSessionData(sessionId: string) {
   try {
     // Make the API call to fetch session stats
-    const response = await api.get("/users/session/data", {
+    const response = await api.get("/users/session/data/", {
       params: { session_id: sessionId },
     });
 
@@ -59,19 +60,22 @@ const initialData = {
   ],
 };
 
-export default function LiveChart({ sessionId }: LiveChartProps) {
+export default function LiveChart({ sessionId, isLive }: LiveChartProps) {
   const [data, setData] = useState(initialData);
   let alsoData = initialData;
 
   useEffect(() => {
+    // Call function first time
+    handleAddEntries();
     // Function that triggers every second
     const interval = setInterval(() => {
-      handleAddEntries();
+      if (isLive) {
+        handleAddEntries();
+      }
     }, DASHBOARD_REFRESH_TIME);
-
     // Cleanup the interval when the component unmounts
     return () => clearInterval(interval);
-  }, []);
+  }, [isLive]);
 
   // Calculate the maximum y-axis value dynamically (110% of highest value in dataset)
   const getMaxValue = () => {

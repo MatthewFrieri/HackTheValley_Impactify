@@ -5,6 +5,7 @@ import { getNumHits, getValues } from "../../utils/helpers";
 
 interface LiveChartProps {
   sessionId: string;
+  isLive?: boolean;
 }
 
 interface DataPoint {
@@ -33,7 +34,7 @@ async function FetchSessionData(sessionId: string) {
   }
 }
 
-export default function NumHits({ sessionId }: LiveChartProps) {
+export default function NumHits({ sessionId, isLive }: LiveChartProps) {
   const [numHits, setNumHits] = useState(0);
   const [biggestHit, setBiggestHit] = useState(0);
   const [mostVulnerable, setMostVulnerable] = useState("...");
@@ -41,7 +42,9 @@ export default function NumHits({ sessionId }: LiveChartProps) {
   useEffect(() => {
     // Function that triggers every second
     const interval = setInterval(() => {
-      calculateStats();
+      if (isLive) {
+        calculateStats();
+      }
     }, DASHBOARD_REFRESH_TIME);
 
     // Cleanup the interval when the component unmounts

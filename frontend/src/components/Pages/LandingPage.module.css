@@ -8,10 +8,19 @@
     padding: 2rem;
     border-radius: 20px;
 }
+
+.sessionBox {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  backdrop-filter: blur(5px);
+  padding: 2rem;
+  border-radius: 20px;
+}
   
-  .headerBox {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
+.headerBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
