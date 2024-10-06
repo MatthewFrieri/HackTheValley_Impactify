@@ -129,8 +129,8 @@ class SessionDataView(APIView):
                 )
                 # Save the data
                 session_data.save()
-                # Send success response
-                return formattedResponse('Success', 'Data saved successfully')
+            # Send success response
+            return formattedResponse('Success', 'Data saved successfully')
         except KeyError:
             print("Key error")
             # If there is an invalid key
