@@ -4,6 +4,7 @@ import { DASHBOARD_REFRESH_TIME } from "../../utils/constants";
 import { Doughnut } from "react-chartjs-2";
 import { getNumHits, getValues } from "../../utils/helpers";
 import Insights from "./Insights";
+import { useLocation } from "react-router-dom";
 
 interface LiveChartProps {
   sessionId: string;
@@ -38,6 +39,24 @@ async function FetchSessionData(sessionId: string) {
 export default function BrainHealth({ sessionId }: LiveChartProps) {
   const [health, setHealth] = useState(1);
 
+  async function SendText() {
+    console.log("sending text");
+
+    const userId = localStorage.getItem("user_id");
+    if (userId) {
+      console.log("USER_ID:", userId);
+
+      try {
+        // Make the API call to send text message
+        const response = await api.get("/users/sms/", {
+          params: { user_id: userId },
+        });
+      } catch (error) {
+        console.error("Error fetching session data:", error);
+      }
+    }
+  }
+
   useEffect(() => {
     // Function that triggers every second
     const interval = setInterval(() => {
@@ -58,6 +77,7 @@ export default function BrainHealth({ sessionId }: LiveChartProps) {
 
   return (
     <>
+      <button onClick={SendText}>Send text</button>
       <h1>Health: {health}</h1>
       <Doughnut
         data={{

@@ -8,6 +8,8 @@ from .models import *
 from datetime import datetime
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from twilio.rest import Client
+import os
 
 def formattedResponse(status, message, data = None, code = status.HTTP_200_OK):
     # Add the status, message and code
@@ -309,12 +311,34 @@ class SendSmsView(APIView):
             if phone_number == None or phone_number == '':
                 # Return an error response
                 return formattedResponse('Error', 'No phone number associated with this user', code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            # Send the SMS
-            # Send the SMS
-            # Send the SMS
-            # Send the SMS
-            # Send the SMS
-            # Send the SMS
+          
+            # --------- Send the SMS ---------
+
+            # Your Twilio account SID and Auth Token (found in the Twilio dashboard)
+            account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+            auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
+
+            # Initialize the Twilio client
+            client = Client(account_sid, auth_token)
+
+            def send_sms(to_number: str, from_number: str, message_body: str):
+                message = client.messages.create(
+                    body=message_body,
+                    from_=from_number,
+                    to=to_number
+                )
+            
+            coach = CoachUser.objects.get(user_id=user_id)
+
+            # Replace the values below with your Twilio number and the recipient's number
+            to_number = '+14169482842'   # The phone number you're sending the SMS to
+            from_number = '+17097973306' # Your Twilio phone number
+            message_body = f"Hello {coach.coach_id.username}! Your player {user.username} is in critical condition. He needs to seek medical attention immediately."
+
+            # Call the function to send the SMS
+            send_sms(to_number, from_number, message_body)
+                        
+
         except KeyError:
             # If there is an invalid key
             return formattedResponse('Error', 'Invalid request', code=status.HTTP_400_BAD_REQUEST)

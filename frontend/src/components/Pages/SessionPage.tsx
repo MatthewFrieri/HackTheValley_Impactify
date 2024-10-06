@@ -11,6 +11,7 @@ const SessionPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sessionName, setSessionName] = useState<string | null>(null);
+  const [isLiveSession, setIsLiveSession] = useState<boolean>(false);
 
   const getQueryParams = () => {
     return new URLSearchParams(location.search);
@@ -30,33 +31,29 @@ const SessionPage: React.FC = () => {
     if (sessionId) {
       fetchSessionDetails(sessionId);
     }
+    const isLive = getQueryParams().get("live");
+    if (isLive) {
+      setIsLiveSession(Boolean(isLive));
+    }
   }, [location.search]);
 
   return (
-    <Box sx={{ padding: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
+    <div>
+      <h1>My New Session</h1>
+      <p>{isLiveSession ? "Live 🔴" : "Not Live"}</p>
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={() => navigate(-1)} // Navigate back to the previous page
+        variant="outlined"
+        sx={{ ml: "auto" }} // Ensure the button stays on the far right
       >
-        {/* Back Button on the right */}
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)} // Navigate back to the previous page
-          variant="outlined"
-          sx={{ ml: "auto" }} // Ensure the button stays on the far right
-        >
-          Back
-        </Button>
-      </Box>
+        Back
+      </Button>
 
       <LiveChart sessionId={getQueryParams().get("session_id") || ""} />
       <Stats sessionId={getQueryParams().get("session_id") || ""} />
       <BrainHealth sessionId={getQueryParams().get("session_id") || ""} />
-    </Box>
+    </div>
   );
 };
 
