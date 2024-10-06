@@ -1,4 +1,4 @@
-import { HIT_THRESHOLD } from "./constants.tsx";
+import { HIT_THRESHOLD } from "./constants.ts";
 
 interface DataPoint {
     timestamp: string;

@@ -3,10 +3,10 @@ import api from "../../utils/api.ts";
 import {
   DASHBOARD_REFRESH_TIME,
   NUM_HITS_FOR_DEATH,
-} from "../../utils/constants.tsx";
+} from "../../utils/constants.ts";
 import { Doughnut } from "react-chartjs-2";
 import "chart.js/auto";
-import { getNumHits, getValues } from "../../utils/helpers.tsx";
+import { getNumHits, getValues } from "../../utils/helpers.ts";
 import Insights from "./Insights.tsx";
 import { Box, Grid2, Typography } from "@mui/material";
 

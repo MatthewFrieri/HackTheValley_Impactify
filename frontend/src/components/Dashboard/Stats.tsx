@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api.ts";
-import { DASHBOARD_REFRESH_TIME } from "../../utils/constants.tsx";
-import { getNumHits, getValues } from "../../utils/helpers.tsx";
+import { DASHBOARD_REFRESH_TIME } from "../../utils/constants.ts";
+import { getNumHits, getValues } from "../../utils/helpers.ts";
 import { Box, Card, Typography } from "@mui/material";
 // import "./stats.css";
 
