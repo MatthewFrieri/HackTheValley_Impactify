@@ -1,5 +1,5 @@
 # Impactify
-Hack The Valley 2024 | 1st place overall 🏆
+Hack The Valley 2024 | [Devpost](https://devpost.com/software/impactify) | 1st place overall 🏆
 
 ## Inspiration 🤔
 The brain, the body's command center, orchestrates every function, but damage to this vital organ in contact sports often goes unnoticed. Studies show that 99% of football players diagnosed with CTE, 87% of boxers have experienced at least one concussion, and 15-30% of hockey injuries are brain-related. If only there were a way for players and coaches to monitor the brain health of players before any long-term damage can occur.
